@@ -5,6 +5,8 @@ using Plots
 
 #### HELPER FUNCTIONS #####
 
+c = Dict()
+
 function read_data(datastring)
     data = readdlm(datastring, ' ', Int)
     first_row = data[1:1, :]
@@ -35,7 +37,6 @@ end
 
 # compute costs for each (i, k, B) in A
 function compute_cikB(A, N)
-    c = Dict()
     n = size(N, 1)
     for (i, k, B) in A
         # compute p_B
@@ -52,6 +53,11 @@ end
 function get_arc_cost(arc, N)
     i, k, B = arc
 
+    # Check if the cost has already been computed
+    if haskey(c, arc)
+        return c[arc]
+    end
+
     # Compute p_B
     p_B = pB(B, N)
 
@@ -59,8 +65,12 @@ function get_arc_cost(arc, N)
     n = size(N, 1)
     cikB = (n - i + 1) * p_B
 
+    # Store the computed cost in the dictionary
+    c[arc] = cikB
+
     return cikB
 end
+
 #= 
 # Knapsack problem functions (for the column generation)
 function gr(r, b, l, sorted_N, n, gr_dict)
@@ -342,7 +352,8 @@ function new_cols(N, b, u, v)
                 #for i in 1:(n-l+1)
                     k = i + l
                     # Compute c_ikB = p_B(n - i + 1) - (u_i - u_k) - gr(b, l)
-                    c_ikB = pB(B_l_b, sorted_N) * (n - i + 1) - (u[i] - u[k]) - gr_l_b
+                    #c_ikB = pB(B_l_b, sorted_N) * (n - i + 1) - (u[i] - u[k]) - gr_l_b
+                    c_ikB = get_arc_cost((i,k,B_l_b), sorted_N) - (u[i] - u[k]) - gr_l_b
                     iter_count += 1
 
                     if c_ikB < 0
