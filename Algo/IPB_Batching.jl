@@ -7,47 +7,47 @@ using CSV
 
 include("CG_Batching.jl")
 
+# CGModel -> used for column generation
+# model_best -> used for IPB
+
 # ADAPT THE FOLLOWING CONSTANTS TO YOUR NEEDS
 SCP_RUNTIME_CB = 300
 GAP_THRESHOLD = 0.05
+# How many columns should be added in each IPB - iteration
+NCOLOUMNS = 500
+
+model_best = nothing
 
 
 
 CG_LB_array = []
 CG_AMOUNT_array = []
 
-# How many columns should be added in each IPB - iteration
-NCOLOUMNS = 500
+IPB_UB_array = []
+IPB_AMOUNT_array = []
 
-function checkExit(cb_data, cb_where::Cint)
-    if cb_where == GRB_CB_MIPNODE
-        # Get runtime and number of solutions from the callback data
-        runtimeP = Ref{Cdouble}()
-        nbSol = Ref{Cint}()
-        GRBcbget(cb_data, cb_where, GRB_CB_RUNTIME, runtimeP)
-        GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_SOLCNT, nbSol)
-        
-        if runtimeP[] > SCP_RUNTIME_CB && nbSol[] > 0
-            # Get objective bound and objective estimate from the callback data
-            objbstP = Ref{Cdouble}()
-            objbndP = Ref{Cdouble}()
-            GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, objbstP)
-            GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBND, objbndP)
-            
-            # Calculate the optimality gap
-            gap = abs((objbstP[] - objbndP[]) / objbstP[])
-            
-            # @Joel recheck here bestCover.cost -> adapt accordingly
-            #if (round(objbstP[]) < round(bestCover.cost)) || (gap < GAP_THRESHOLD)
-            if (gap < GAP_THRESHOLD)
-                # If the objective estimate is lower than the bestCover cost or the gap is smaller than the threshold, terminate the optimizer
-                # Uncomment the following line if you want to print the values for debugging
-                # println("$(round(objbstP[])) < $(round(bestCover.cost)) || $gap < $GAP_THRESHOLD // $(runtimeP[]), $(nbSol[]), $(objbstP[]) , $(objbndP[])") 
-                GRBterminate(backend(model_best).optimizer.model.inner)
-            end
-        end
+best_sol = Inf
+
+MILP_UB_array = []
+
+function callback_Incumbent(cb_data, cb_where)
+    if cb_where == GRB_CB_MIPSOL
+        obj = Ref{Cdouble}()
+        runtime = Ref{Cdouble}()
+        # When a new incumbent is found, get the objective and runtime
+        #obj = Gurobi.cbget(cb_data, cb_where, GRB_CB_MIPSOL_OBJ)
+        GRBcbget(cb_data, cb_where, GRB_CB_MIPSOL_OBJ, obj)
+        #obj = GRB_CB_MIPSOL_OBJ
+        #runtime = Gurobi.cbget(cb_data, cb_where, GRB_CB_RUNTIME)
+        GRBcbget(cb_data, cb_where, GRB_CB_RUNTIME, runtime)
+        #runtime = GRB_CB_RUNTIME
+        #println("New incumbent: ", obj, ", Runtime: ", runtime)
+        push!(MILP_UB_array, (obj.x, runtime.x))
     end
 end
+
+
+
 
 function plot_comparison_CG(CG_AMOUNT::Vector{Any}, CG_LB::Vector{Any})
     p1 = plot([x[2] for x in CG_AMOUNT], [x[1] for x in CG_AMOUNT], label = "Number of columns", line = :blue, ylabel = "Number of columns", legend = :topright)
@@ -90,7 +90,7 @@ end
 
 
 
-# 
+# IPB Algorithm
 function IPB(fileName::String, b::Int64)
 
     DEBUGGING = false
@@ -119,6 +119,45 @@ function IPB(fileName::String, b::Int64)
 
     
     # Step 2: Column Generation: Initial Column Pool and Integer Solution
+
+    # Inner check exit function
+    function checkExit(cb_data, cb_where::Cint)
+        if cb_where == GRB_CB_MIPNODE
+            # Get runtime and number of solutions from the callback data
+            runtimeP = Ref{Cdouble}()
+            nbSol = Ref{Cint}()
+            GRBcbget(cb_data, cb_where, GRB_CB_RUNTIME, runtimeP)
+            GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_SOLCNT, nbSol)
+    
+            #gap = abs((objbstP[] - objbndP[]) / objbstP[])
+            
+            #if runtimeP[] > SCP_RUNTIME_CB && nbSol[] > 0
+                # Get objective bound and objective estimate from the callback data
+                objbstP = Ref{Cdouble}()
+                objbndP = Ref{Cdouble}()
+                GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, objbstP)
+                GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBND, objbndP)
+                
+                # Calculate the optimality gap
+                gap = abs((objbstP[] - objbndP[]) / objbstP[])
+                #GRBterminate(backend(model_best).optimizer.model.inner)
+                #model_best.terminate()
+            #end
+                # @Joel recheck here bestCover.cost -> adapt accordingly
+                #if (round(objbstP[]) < round(bestCover.cost)) || (gap < GAP_THRESHOLD)
+                if (gap < GAP_THRESHOLD)
+                    # If the objective estimate is lower than the bestCover cost or the gap is smaller than the threshold, terminate the optimizer
+                    # Uncomment the following line if you want to print the values for debugging
+                    # println("$(round(objbstP[])) < $(round(bestCover.cost)) || $gap < $GAP_THRESHOLD // $(runtimeP[]), $(nbSol[]), $(objbstP[]) , $(objbndP[])") 
+                    
+                    
+                    #GRBterminate(backend(model_best).optimizer.model.inner)
+                    #cb_data.terminate()
+                    println("Model terminated")
+                end
+            
+        end
+    end
 
     while true
         z = objective_value(CGModel)
@@ -157,6 +196,7 @@ function IPB(fileName::String, b::Int64)
         push!(CG_AMOUNT_array, (length(A_prime), elapsed_time))
     end
 
+    start_time_IPB = time()
     # Step 3: Solve Restricted Master problem
 
     plot_CG_LB(CG_LB_array)
@@ -164,21 +204,16 @@ function IPB(fileName::String, b::Int64)
     MOI.set(model_best, Gurobi.CallbackFunction(), checkExit)
 
     while true
-        #for element in values(x_best)
-        #    set_integer.(element) 
-        #end
         optimize!(model_best)
-        
         u, v = get_duals(model_best, n, flow_conservation_constraints_best, partitioning_constraints_best) 
 
+        # Check if duals are found, if not, stop
         if(u[1] == Inf || v[1] == Inf)
             println("No duals found")
             break
         end
         
         # Step 4: pricing
-        #u = u_best
-        #v = v_best
 
         # empty price_dict
         empty!(price_dict)
@@ -186,7 +221,9 @@ function IPB(fileName::String, b::Int64)
         # for each column in the column pool, calculate the reduced cost
         for element in keys(x)
             (i, k, B) = element
-            price_dict[element] =  pB(B, N) * (n - i + 1) - (u[i] - u[k]) - sum(v[j] for j in B)
+            #price_dict[element] =  pB(B, N) * (n - i + 1) - (u[i] - u[k]) - sum(v[j] for j in B)
+            price_dict[element] =  get_arc_cost(element, N) - (u[i] - u[k]) - sum(v[j] for j in B)
+
         end
 
         # Sort price_dict by value ascending and only keep columns with negative reduced cost
@@ -225,6 +262,8 @@ function IPB(fileName::String, b::Int64)
         optimize!(model_best)
 
         obj = objective_value(model_best)
+        elapsed_time_IPB = time() - start_time_IPB
+        push!(IPB_UB_array, (obj, elapsed_time_IPB))
         # Step 7: New best Solution?
         println("New best solution found: $(obj)")
 
@@ -243,7 +282,21 @@ function IPB(fileName::String, b::Int64)
 
 
 
-    end  
+    end
+    
+
+    ## Try to access information through the callback function about incumbent solution
+    MOI.set(CGModel, Gurobi.CallbackFunction(), callback_Incumbent)
+
+    for element in values(x)
+        set_integer(element) 
+    end
+
+    optimize!(CGModel)
+
+
+
+
 
 end 
 
@@ -252,13 +305,33 @@ end
 println("Starting IPB")
 
 
-IPB("Data/inst_200_50_3.txt", 10)
+IPB("Data/inst_100_50_3.txt", 20)
 
 #plot_CG_LB(CG_AMOUNT_array) 
 
 
 plot_comparison_CG(CG_AMOUNT_array, CG_LB_array)
 
+plot_CG_LB(IPB_UB_array)
 
 
-CG_LB_array
+plot_CG_LB(MILP_UB_array)
+
+MILP_UB_array
+
+
+
+
+
+arr1 = [(value, time) for (value, time) in MILP_UB_array if time < 300]
+arr2 = [(value, time) for (value, time) in IPB_UB_array if time < 300]
+
+
+y1 = [point[1] for point in arr1]
+x1 = [point[2] for point in arr1]
+y2 = [point[1] for point in arr2]
+x2 = [point[2] for point in arr2]
+
+plot(x1, y1, label = "Array 1", linewidth = 2)
+plot!(x2, y2, label = "Array 2", linewidth = 2)
+
