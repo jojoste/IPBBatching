@@ -13,12 +13,10 @@ include("CG_Batching.jl")
 # model_RMP -> used for IPB, reduced model only with inital columns
 
 # ADAPT THE FOLLOWING CONSTANTS TO YOUR NEEDS
-SCP_RUNTIME_CB = 300
+RMP_RUNTIME = 60
 GAP_THRESHOLD = 0.05
 # How many columns should be added in each IPB - iteration
-NCOLOUMNS = 100
-
-model_best = nothing
+NCOLOUMNS = 5000
 
 
 directoryInstances = "Data/Instances_txt/"
@@ -31,6 +29,8 @@ filenamesJSON = glob("*.json", directoryJSON)
 filenamesJSON = [replace(filename, ".json" => "") for filename in filenamesJSON]
 filenamesJSON = [replace(filename, "Data/CG_JSON/" => "") for filename in filenamesJSON]
 
+CG_iteration = 0
+IPB_iteration = 0
 
 
 CG_LB_array = []
@@ -57,6 +57,19 @@ function callback_Incumbent(cb_data, cb_where)
         #println("New incumbent: ", obj, ", Runtime: ", runtime)
         push!(MILP_UB_array, (obj.x, runtime.x))
     end
+end
+
+function plot_MILP_IPB(MILP_UB_array, IPB_UB_array, Timelimit)
+    arr1 = [(value, time) for (value, time) in MILP_UB_array if time < Timelimit]
+    arr2 = [(value, time) for (value, time) in IPB_UB_array if time < Timelimit]
+
+    y1 = [point[1] for point in arr1]
+    x1 = [point[2] for point in arr1]
+    y2 = [point[1] for point in arr2]
+    x2 = [point[2] for point in arr2]
+
+    plot(x1, y1, label="MILP", linewidth=2)
+    plot!(x2, y2, label="IPB", linewidth=2)
 end
 
 function plot_comparison_CG(CG_AMOUNT::Vector{Any}, CG_LB::Vector{Any})
@@ -100,8 +113,12 @@ end
 
 
 
+
 # IPB Algorithm
 function IPB(fileName::String, no_CG::Bool)
+    output_file = open(output_filename, "w")
+    write(output_file, "$fileName start IPB\n")
+    
     println("Starting IPB")
 
     if(no_CG)
@@ -112,6 +129,10 @@ function IPB(fileName::String, no_CG::Bool)
         no_CG = false
         end
     end
+
+    write(output_file, "RMP_RUNTIME: $RMP_RUNTIME\n")
+    write(output_file, "GAP_THRESHOLD: $GAP_THRESHOLD\n")
+    write(output_file, "NCOLOUMNS: $NCOLOUMNS\n\n")
 
 
     DEBUGGING = false
@@ -124,9 +145,11 @@ function IPB(fileName::String, no_CG::Bool)
 
     # Step 1: reduced model, will later be used for RMP and CG
     if(!no_CG)
+        write(output_file, "\nStart IPB with CG\n")
         A_prime_RMP = init_cols(N, b)
         A_prime_CG = copy(A_prime_RMP)
     else
+        write(output_file, "\nStart IPB without CG\n")
         A_prime_CG = Tuple{Int,Int,Vector{Int}}[]
         data = JSON.parsefile("Data/CG_JSON/$(fileName_compare).json")
         for (k, i, B) in data
@@ -134,6 +157,7 @@ function IPB(fileName::String, no_CG::Bool)
         end
         A_prime_RMP = init_cols(N, b)
     end
+    close(output_file)
 
 
     c_prime_RMP = compute_cikB(A_prime_RMP, N)
@@ -142,58 +166,29 @@ function IPB(fileName::String, no_CG::Bool)
     a_prime_CG = create_a_dict(A_prime_CG, N)
 
     price_dict = Dict()
-    
+    open(output_file, "a")
+    start_time = time()
+    write(output_file, "\nInitialize RMP model\n")
     # Initialize model for RMP (used in IPB)
     x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, u_RMP, v_RMP, obj_RMP, model_RMP = solve_optimal_partitioning_problem(A_prime_RMP, c_prime_RMP, true, N, DEBUGGING)
+    write(output_file, "RMP model initialized in $(time() - start_time) seconds\n")
+    
+    write(output_file, "\nInitialize CG model\n")
     # Initialize model for CG 
     x_CG, flow_conservation_constraints_CG, partitioning_constraints_CG, u_CG, v_CG, obj_CG, model_CG = solve_optimal_partitioning_problem(A_prime_CG, c_prime_CG, false, N, DEBUGGING)
+    write(output_file, "CG model initialized in $(time() - start_time) seconds\n")
 
     
     # Step 2: Column Generation: Initial Column Pool and Integer Solution
-    # Inner check exit function
-    function checkExit(cb_data, cb_where::Cint)
-        if cb_where == GRB_CB_MIPNODE
-            # Get runtime and number of solutions from the callback data
-            runtimeP = Ref{Cdouble}()
-            nbSol = Ref{Cint}()
-            GRBcbget(cb_data, cb_where, GRB_CB_RUNTIME, runtimeP)
-            GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_SOLCNT, nbSol)
-    
-            #gap = abs((objbstP[] - objbndP[]) / objbstP[])
-            
-            #if runtimeP[] > SCP_RUNTIME_CB && nbSol[] > 0
-                # Get objective bound and objective estimate from the callback data
-                objbstP = Ref{Cdouble}()
-                objbndP = Ref{Cdouble}()
-                GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, objbstP)
-                GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBND, objbndP)
-                
-                # Calculate the optimality gap
-                gap = abs((objbstP[] - objbndP[]) / objbstP[])
-                #GRBterminate(backend(model_best).optimizer.model.inner)
-                #model_best.terminate()
-            #end
-                # @Joel recheck here bestCover.cost -> adapt accordingly
-                #if (round(objbstP[]) < round(bestCover.cost)) || (gap < GAP_THRESHOLD)
-                if (gap < GAP_THRESHOLD)
-                    # If the objective estimate is lower than the bestCover cost or the gap is smaller than the threshold, terminate the optimizer
-                    # Uncomment the following line if you want to print the values for debugging
-                    # println("$(round(objbstP[])) < $(round(bestCover.cost)) || $gap < $GAP_THRESHOLD // $(runtimeP[]), $(nbSol[]), $(objbstP[]) , $(objbndP[])") 
-                    
-                    
-                    #GRBterminate(backend(model_best).optimizer.model.inner)
-                    #cb_data.terminate()
-                    println("Model terminated")
-                end
-            
-        end
-    end
-    
+
     # Get amount of starting columns 
     elapsed_time = time() - total_start_time
     push!(CG_AMOUNT_array, (length(A_prime_CG), elapsed_time))
-
-    while (true && !no_CG)
+    write(output_file, "\nStart CG\n")
+    write(output_file, "CG_AMOUNT: $(length(A_prime_CG)) at iteration $CG_iteration\n")
+    close(output_file)
+    while (true & !no_CG)
+        CG_iteration += 1
         z = objective_value(model_CG)
         u, v = get_duals(model_CG, n, flow_conservation_constraints_CG, partitioning_constraints_CG)
         H = new_cols(N, b, u, v)
@@ -233,17 +228,43 @@ function IPB(fileName::String, no_CG::Bool)
     start_time_IPB = time()
     # Step 3: Solve Restricted Master problem
 
-    plot_CG_LB(CG_LB_array)
-
+    # callback function for IPB
     # Edit callback function!! revise
-    #MOI.set(model_best, Gurobi.CallbackFunction(), checkExit)
-    set_optimizer_attribute(model_RMP, "TimeLimit", 5)
+    # https://discourse.julialang.org/t/easier-solver-callback-for-jump-lj-gurobi/84889/2
+    function callback_checkExit(cb_data, cb_where::Cint)
+        if cb_where == GRB_CB_MIPNODE
+            runtimeP = Ref{Cdouble}()
+            nbSol = Ref{Cint}()
+            GRBcbget(cb_data, cb_where, GRB_CB_RUNTIME, runtimeP)
+            GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_SOLCNT, nbSol)
+                
+        
+            if runtimeP[] > RMP_RUNTIME && nbSol[] > 0
+                objbstP = Ref{Cdouble}()
+                objbndP = Ref{Cdouble}()
+                GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, objbstP)
+                GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBND, objbndP)
+                gap = abs((objbstP[] - objbndP[]) / objbstP[])
+                if (round(objbstP[]) < round(best_sol)) || (gap < GAP_THRESHOLD)
+                    # println("$(round(objbstP[])) < $(round(bestCover.cost)) || $gap < $GAP_THRESHOLD // $(runtimeP[]), $(nbSol[]), $(objbstP[]) , $(objbndP[])") 
+                    println("Terminate RMP")
+                    GRBterminate(JuMP.backend(model_RMP).optimizer.model.inner)
+                end
+            end
+        end
+    end
 
-
+    MOI.set(model_RMP, Gurobi.CallbackFunction(), callback_checkExit)
+    
     elapsed_time = time() - total_start_time
     #push!(IPB_UB_array, (objective_value(model_RMP), elapsed_time))
+    output_file = open(output_filename, "a") 
+    write(output_file, "\nStart IPB\n")
+    write(output_file, "IPB_UB: $(objective_value(model_RMP)) at iteration $IPB_iteration\n")
+    close(output_file)
 
     while true
+        IPB_iteration += 1
         optimize!(model_RMP)
         u_RMP, v_RMP = get_duals(model_RMP, n, flow_conservation_constraints_RMP, partitioning_constraints_RMP) 
 
@@ -336,7 +357,7 @@ end
 
 ##### DEBGUGGING AREA #####
 
-IPB("Data/Instances_txt/inst_100_10_4.txt", true)
+IPB("Data/Instances_txt/inst_200_30_1.txt", true)
 
 
 
@@ -357,17 +378,5 @@ MILP_UB_array
 
 
 
-
-
-arr1 = [(value, time) for (value, time) in MILP_UB_array if time < 300]
-arr2 = [(value, time) for (value, time) in IPB_UB_array if time < 300]
-
-
-y1 = [point[1] for point in arr1]
-x1 = [point[2] for point in arr1]
-y2 = [point[1] for point in arr2]
-x2 = [point[2] for point in arr2]
-
-plot(x1, y1, label = "MILP", linewidth = 2)
-plot!(x2, y2, label = "IPB", linewidth = 2)
+plot_MILP_IPB(MILP_UB_array, IPB_UB_array, 1200)
 

@@ -2,11 +2,13 @@ using DelimitedFiles
 using JuMP
 using Gurobi
 using Plots
+using Dates
 
 #### HELPER FUNCTIONS #####
 
 #c = Dict()
-
+timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
+output_filename = "Output/try_$timestamp.txt"
 
 function read_data(datastring)
     data = readdlm(datastring, ' ', Int)
@@ -477,8 +479,10 @@ function solve_optimal_partitioning_problem(A, c, relaxation, N, debugging)
         obj = min(obj, objective_value(model))
         # Get optimal values
         # Filter out arcs with values == 0
-        x_optimal = Dict(arc => value(x[arc]) for arc in A if value(x[arc]) != 0)
-        println("Optimal Solution (used arcs): ", x_optimal)
+        if(debugging)
+            x_optimal = Dict(arc => value(x[arc]) for arc in A if value(x[arc]) != 0)
+            println("Optimal Solution (used arcs): ", x_optimal)
+        end
     end
 
     return x, flow_conservation_constraints, partitioning_constraints, u, v, obj, model
