@@ -5,7 +5,8 @@ using Plots
 
 #### HELPER FUNCTIONS #####
 
-c = Dict()
+#c = Dict()
+
 
 function read_data(datastring)
     data = readdlm(datastring, ' ', Int)
@@ -23,13 +24,20 @@ function read_data(datastring)
     return first_row, remaining_data, B, sigma
 end
 
+# plot the solution
+function plot_CG_LB(CG_LB_array)
+    # Extract elapsed_time and cg_lb from each tuple in CG_LB_array
+    elapsed_time = [t[2] for t in CG_LB_array]
+    cg_lb = [t[1] for t in CG_LB_array]
+
+    plot(elapsed_time, cg_lb, label="CG_LB", title="CG_LB over time", xlabel="Time (seconds)", ylabel="CG_LB")
+end
+
 # compute (max) processing time for one arc (==> cost)
 function pB(B, N)
     max_p = -Inf
     for j in B
         # access first column of N at row j
-
-
         max_p = max(max_p, first(N[N[:, 1].==j, 2]))
     end
     return max_p
@@ -38,6 +46,7 @@ end
 # compute costs for each (i, k, B) in A
 function compute_cikB(A, N)
     n = size(N, 1)
+    c = Dict()
     for (i, k, B) in A
         # compute p_B
         p_B = pB(B, N)
@@ -53,11 +62,6 @@ end
 function get_arc_cost(arc, N)
     i, k, B = arc
 
-    # Check if the cost has already been computed
-    if haskey(c, arc)
-        return c[arc]
-    end
-
     # Compute p_B
     p_B = pB(B, N)
 
@@ -65,8 +69,8 @@ function get_arc_cost(arc, N)
     n = size(N, 1)
     cikB = (n - i + 1) * p_B
 
-    # Store the computed cost in the dictionary
-    c[arc] = cikB
+    # Store the computed cost in the dictionary revise
+    #c[arc] = cikB
 
     return cikB
 end
@@ -150,14 +154,19 @@ function get_B(r, b, l, sorted_N, n, gr_dict, B_dict)
 end =#
 
 
-function knapsack(r, b, l, sorted_N, n, gr_dict, B_dict)
+
+function knapsack(r, b, l, sorted_N, n, GR_mem, B_mem)
     # check if value is already computed
-    if haskey(gr_dict, (r, b, l))
-        return gr_dict[(r, b, l)], B_dict[(r, b, l)]
-    end
+
+    # @Joel, recheck this here (+1) -> limitation of Julia starting indice at 1
+    #if(b>0)
+        if !ismissing(GR_mem[r+1, b+11, l+1])
+            return GR_mem[r+1, b+11, l+1], B_mem[r+1, b+11, l+1]
+        end
+    #end 
 
     computed_value = 0
-    B = []
+    B_local = []
 
     # boundary conditions
     if l > n - r + 1 || b < 0
@@ -167,30 +176,32 @@ function knapsack(r, b, l, sorted_N, n, gr_dict, B_dict)
     elseif r == n
         if sorted_N[r, 3] <= b && l == 1
             computed_value = sorted_N[r, 4]
-            B = [sorted_N[r, 1]]
+            B_local = [sorted_N[r, 1]]
         else
             computed_value = 0
         end
     else
-        gr_with_yr_1, B_with_yr_1 = knapsack(r + 1, b - sorted_N[r, 3], l - 1, sorted_N, n, gr_dict, B_dict)
+        gr_with_yr_1, B_with_yr_1 = knapsack(r + 1, b - sorted_N[r, 3], l - 1, sorted_N, n, GR_mem, B_mem)
         gr_with_yr_1 += sorted_N[r, 4]
-        gr_with_yr_0, B_with_yr_0 = knapsack(r + 1, b, l, sorted_N, n, gr_dict, B_dict)
+        gr_with_yr_0, B_with_yr_0 = knapsack(r + 1, b, l, sorted_N, n, GR_mem, B_mem)
 
         if gr_with_yr_1 >= gr_with_yr_0
             computed_value = gr_with_yr_1
-            B = [sorted_N[r, 1]; B_with_yr_1]
+            B_local = [sorted_N[r, 1]; B_with_yr_1]
         else
             computed_value = gr_with_yr_0
-            B = B_with_yr_0
+            B_local = B_with_yr_0
         end
     end
 
     # store computed value and jobs
-    gr_dict[(r, b, l)] = computed_value
-    B_dict[(r, b, l)] = B
+    #if(b>0)
+        GR_mem[r+1, b+11, l+1] = computed_value
+        B_mem[r+1, b+11, l+1] = B_local
+    #end
 
-    return computed_value, B
-end
+    return computed_value, B_local
+end 
 
 # create incidence column vector
 function create_a_dict(A, N)
@@ -211,15 +222,6 @@ function create_a_dict(A, N)
     return a
 end
 
-# plot the solution
-function plot_CG_LB(CG_LB_array)
-    # Extract elapsed_time and cg_lb from each tuple in CG_LB_array
-    elapsed_time = [t[2] for t in CG_LB_array]
-    cg_lb = [t[1] for t in CG_LB_array]
-
-    plot(elapsed_time, cg_lb, label="CG_LB", title="CG_LB over time", xlabel="Time (seconds)", ylabel="CG_LB")
-end
-
 # update existing model
 function update_model(model, A_new, A, x, N, a, c, flow_conservation_constraints, partitioning_constraints)
     # Update model with new columns
@@ -228,20 +230,7 @@ function update_model(model, A_new, A, x, N, a, c, flow_conservation_constraints
         if !haskey(x, arc)
             # Add new arc to A
             push!(A, arc)
-
-            # ?? Might not be necessary??
-            # Update incidence matrix
-            #=if !haskey(a, arc[3])
-                a[arc[3]] = Dict()
-                for j in 1:size(N, 1)
-                    if j in arc[3]
-                        a[arc[3]][j] = 1
-                    else
-                        a[arc[3]][j] = 0
-                    end
-                end
-            end=#
-
+            
             # Get cost for new arc and add to c
             c[arc] = get_arc_cost(arc, N)
 
@@ -286,12 +275,10 @@ end
 # Algorithm 2: Generation of the set of initial arcs
 function init_cols(N, b)
     # Sort jobs in N such that p1 ≤ p2 ≤ ... ≤ pn
-
     sorted_N = sortslices(N, dims=1, by=x -> x[2])
 
     # Set H ← ∅ (Set of initial arcs)
     H = Tuple{Int,Int,Vector{Int}}[]
-
     n = size(sorted_N, 1)
 
     # for all jobs check if they fit into the batch
@@ -324,13 +311,17 @@ function new_cols(N, b, u, v)
     # Sort and renumber jobs in N such that p1 ≥ p2 ≥ ... ≥ pn
     s_v = hcat(N, v)
     sorted_N = sortslices(s_v, dims=1, by=x -> x[2], rev=true)
+    sorted_N = round.(Int, sorted_N)
     n = size(sorted_N, 1)
     # Set H = ∅ (Set of negative-reduced cost arcs)
     H = [Tuple{Int,Int,Vector{Int}}[] for _ in 1:n]
 
-    # Dictionaires for gr and B
-    gr_dict = Dict{Tuple{Int,Int,Int}, Float64}()
-    B_dict = Dict{Tuple{Int,Int,Int}, Any}()
+    # Arrays for gr and B
+    # For now some values, come back and change
+    GR_mem = Array{Any}(missing,n+1,b+11,n+1)
+    B_mem = Array{Any}(missing, n+1, b+11, n+1)
+    #gr_dict = Dict{Tuple{Int,Int,Int}, Float64}()
+    #B_dict = Dict{Tuple{Int,Int,Int}, Any}()
     
     #Threads.@threads for l in 1:n
     for l in 1:n
@@ -342,37 +333,28 @@ function new_cols(N, b, u, v)
             iter_count = 0
 
             while !done 
-                start_time = time()
-                #print("calculation...")
-
-                gr_l_b, B_l_b  =  knapsack(r, b, l, sorted_N, n, gr_dict, B_dict )
-                #B_l_b = get_B(r, b, l, sorted_N, n, B_dict, gr_dict)
-                # position of nodes
-                Threads.@threads  for i in 1:(n-l+1)
-                #for i in 1:(n-l+1)
+                gr_l_b, B_l_b  =  knapsack(r, b, l, sorted_N, n, GR_mem, B_mem )
+                #gr_l_b, B_l_b = knapsack_old(r, b, l, sorted_N, n, gr_dict, B_dict)
+                #position of nodes
+                #Threads.@threads  for i in 1:(n-l+1)
+                for i in 1:(n-l+1)
                     k = i + l
                     # Compute c_ikB = p_B(n - i + 1) - (u_i - u_k) - gr(b, l)
                     #c_ikB = pB(B_l_b, sorted_N) * (n - i + 1) - (u[i] - u[k]) - gr_l_b
                     c_ikB = get_arc_cost((i,k,B_l_b), sorted_N) - (u[i] - u[k]) - gr_l_b
-                    iter_count += 1
 
-                    if c_ikB < 0
+                    if c_ikB < -0.001
                         # Set H := H ∪ {(i, k, B)}
                         # This was added -> need to revise
                         if (k - i) == length(B_l_b)
                             #print("adding arc: ", (i, k, copy(B_l_b)), " \t  $c_ikB")
-                            push!(H[l], (i, k, sort(copy(B_l_b))))
+                            push!(H[l], (i, k, sort(B_l_b)))
                         end
                     end
                 end
 
                 # Set r := min{j : p_j < p_r}
                 r_values = [j for j in 1:n if sorted_N[j, 2] < sorted_N[r, 2]]
-
-                # if(time() - start_time > 5)
-                #     l+=1
-                #     done = true
-                # end
                 
                 if !isempty(r_values) 
                     r = minimum([Int(x) for x in r_values])
@@ -394,12 +376,14 @@ end
 # relaxation = true if we want to solve the LP relaxation, false if we want to solve the IP relaxation
 function solve_optimal_partitioning_problem(A, c, relaxation, N, debugging)
 
+    
     # Create a dictionary of incidence column vectors
     a = create_a_dict(A, N)
 
     n = size(N, 1)
     # Create new model Gurobi 
     model = Model(Gurobi.Optimizer)
+
 
     # Set Gurobi parameters
     if debugging
@@ -504,7 +488,7 @@ end
 
 # Algo 3: price and branch procedure
 
-function price_and_branch(N, b, debugging)
+function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false)
     # Step 1: A′ ← InitCols(N , b)
     CG_LB = Inf
     CG_UB = Inf
@@ -543,7 +527,7 @@ function price_and_branch(N, b, debugging)
 
 
         # Step 7: if |H |=0 then
-        if length(H) == 0 || limit > 40 #|| elapsed_time < 500
+        if length(H) == 0 #|| limit > 40 #|| elapsed_time < 500
             # Step 8: CG − LB ← z — continuous optimum, lower bound
             CG_LB = objective_value(myModel)
             elapsed_time = time() - start_time
@@ -551,20 +535,21 @@ function price_and_branch(N, b, debugging)
 
             # Step 9: CG − UB ← integer solution computed over G(V , A′)
             # Add binary constraint
-            for element in values(x)
-                set_binary(element)
+            if(solveNonRelaxed)
+                for element in values(x)
+                    set_binary(element)
+                end
+                set_optimizer_attribute(myModel, "Method", 2)
+                optimize!(myModel)
+                # check if we have an integer solution
+                if termination_status(myModel) == MOI.OPTIMAL
+                    CG_UB = objective_value(myModel)
+                    x_optimal = sort(Dict(arc => value(x[arc]) for arc in A_prime if value(x[arc]) != 0))
+                    println("Optimal Solution (used arcs): ", x_optimal)
+                else
+                    println("No integer solution found!")
+                end
             end
-            set_optimizer_attribute(myModel, "Method", 2)
-            optimize!(myModel)
-            # check if we have an integer solution
-            if termination_status(myModel) == MOI.OPTIMAL
-                CG_UB = objective_value(myModel)
-                x_optimal = sort(Dict(arc => value(x[arc]) for arc in A_prime if value(x[arc]) != 0))
-                println("Optimal Solution (used arcs): ", x_optimal)
-            else
-                println("No integer solution found!")
-            end
-
             # Step 10: break
             break
         end
@@ -577,22 +562,31 @@ function price_and_branch(N, b, debugging)
         # save CG_LB in array
         elapsed_time = time() - start_time
         push!(CG_LB_array, (objective_value(myModel), elapsed_time))
-        plot_CG_LB(CG_LB_array)
 
         #SparseArrays.sparse(hcat(x...))
 
         limit += 1
     end
-    return CG_LB, CG_UB, CG_LB_array
+
+    return CG_LB, CG_UB, CG_LB_array, x, c
 end
 
 
 ##### DEBGUGGING AREA #####
 
-first_row, remaining_data = read_data("Data/inst_100_50_3.txt")
-N = remaining_data
+#first_row, remaining_data = read_data("Data/Instances_txt/inst_20_50_1.txt")
+#N = remaining_data
 
-#CG_LB, CG_UB, CG_LB_array = price_and_branch(N, 50, false)
+#CG_LB, CG_UB, CG_LB_array, x, c = price_and_branch(N, 50, false)
+
+#length(x)
+
+
+
+
+
+#CG("Data/Instances_txt/inst_40_50_3.txt", 10, false)
+
 
 
 ####### Uncommment HERE ########
