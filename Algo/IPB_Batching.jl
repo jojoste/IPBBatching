@@ -379,4 +379,3 @@ MILP_UB_array
 
 
 plot_MILP_IPB(MILP_UB_array, IPB_UB_array, 1200)
-

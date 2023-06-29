@@ -338,8 +338,8 @@ function new_cols(N, b, u, v)
                 gr_l_b, B_l_b  =  knapsack(r, b, l, sorted_N, n, GR_mem, B_mem )
                 #gr_l_b, B_l_b = knapsack_old(r, b, l, sorted_N, n, gr_dict, B_dict)
                 #position of nodes
-                #Threads.@threads  for i in 1:(n-l+1)
-                for i in 1:(n-l+1)
+                Threads.@threads  for i in 1:(n-l+1)
+                #for i in 1:(n-l+1)
                     k = i + l
                     # Compute c_ikB = p_B(n - i + 1) - (u_i - u_k) - gr(b, l)
                     #c_ikB = pB(B_l_b, sorted_N) * (n - i + 1) - (u[i] - u[k]) - gr_l_b
