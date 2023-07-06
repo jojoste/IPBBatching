@@ -6,7 +6,7 @@ using Dates
 
 #### HELPER FUNCTIONS #####
 
-#c = Dict()
+
 timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
 output_filename = "Output/try_$timestamp.txt"
 
@@ -223,6 +223,63 @@ function create_a_dict(A, N)
     end
     return a
 end
+
+# Create a new Gurobi model
+function create_model(A, c, N)
+
+    
+    # Create a dictionary of incidence column vectors
+    a = create_a_dict(A, N)
+
+    n = size(N, 1)
+    # Create new model Gurobi 
+    model = Model(Gurobi.Optimizer)
+
+    # create variable for each arc in A
+    x = Dict{Tuple{Int,Int,Vector{Int}},VariableRef}()
+
+    for arc in A
+        x[arc] = @variable(model, lower_bound = 0, upper_bound = 1, base_name = "x[$arc]")
+    end
+
+    # Create objective function (13)
+    @objective(model, Min, sum(c[arc] * x[arc] for arc in A))
+
+    #Create flow conservation constraints (14)
+    flow_conservation_constraints = Dict{Int,ConstraintRef}()
+
+    for node in 1:n+1
+        if node == 1  # single source
+            flow_conservation_constraints[node] = @constraint(
+                model,
+                sum(x[arc] for arc in A if arc[1] == node) - sum(x[arc] for arc in A if arc[2] == node) == 1
+            )
+        elseif node == n + 1  # single sink
+            flow_conservation_constraints[node] = @constraint(
+                model,
+                sum(x[arc] for arc in A if arc[1] == node) - sum(x[arc] for arc in A if arc[2] == node) == -1
+            )
+        else  # intermediate nodes
+            flow_conservation_constraints[node] = @constraint(
+                model,
+                sum(x[arc] for arc in A if arc[1] == node) - sum(x[arc] for arc in A if arc[2] == node) == 0
+            )
+        end
+    end
+
+    #Create partitioning constraints (15)
+    partitioning_constraints = Dict{Int,ConstraintRef}()
+
+    for j in 1:n
+        partitioning_constraints[j] = @constraint(
+            model,
+            sum(a[B][j] * x[(i, k, B)] for (i, k, B) in A if haskey(a[B], j)) == 1
+        )
+    end
+
+    return x, flow_conservation_constraints, partitioning_constraints, model
+end
+
 
 # update existing model
 function update_model(model, A_new, A, x, N, a, c, flow_conservation_constraints, partitioning_constraints)
