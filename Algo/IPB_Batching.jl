@@ -10,14 +10,24 @@ using Plots
 include("CG_Batching.jl")
 
 # model_CG -> used for column generation, full model
-# model_RMP -> used for IPB, reduced model only with inital columns
+# model_RMP -> used for IPB, reduced model only with inital columns, will be reassigned in each iteration
 
 # ADAPT THE FOLLOWING CONSTANTS TO YOUR NEEDS
 RMP_RUNTIME = 60
-GAP_THRESHOLD = 0.05
-# How many columns should be added in each IPB - iteration
-NCOLOUMNS = 5000
+GAP_THRESHOLD = 0.01
+CG_MAX_ITERATION = 10
+NCOLOUMNS = 100
 
+# Maximum number of iterations for IPB (removed later)
+IPB_MAX_ITERATION  = 10
+
+best_sol = Inf
+
+CG_LB_array = []
+CG_AMOUNT_array = []
+IPB_UB_array = []
+IPB_AMOUNT_array = []
+MILP_UB_array = []
 
 directoryInstances = "Data/Instances_txt/"
 filenamesInstances = glob("*.txt", directoryInstances)
@@ -29,19 +39,6 @@ filenamesJSON = glob("*.json", directoryJSON)
 filenamesJSON = [replace(filename, ".json" => "") for filename in filenamesJSON]
 filenamesJSON = [replace(filename, "Data/CG_JSON/" => "") for filename in filenamesJSON]
 
-CG_iteration = 0
-IPB_iteration = 0
-
-
-CG_LB_array = []
-CG_AMOUNT_array = []
-
-IPB_UB_array = []
-IPB_AMOUNT_array = []
-
-best_sol = Inf
-
-MILP_UB_array = []
 
 function callback_Incumbent(cb_data, cb_where)
     if cb_where == GRB_CB_MIPSOL
@@ -68,8 +65,12 @@ function plot_MILP_IPB(MILP_UB_array, IPB_UB_array, Timelimit)
     y2 = [point[1] for point in arr2]
     x2 = [point[2] for point in arr2]
 
-    plot(x1, y1, label="MILP", linewidth=2)
-    plot!(x2, y2, label="IPB", linewidth=2)
+    # Format y-axis values without scientific notation
+    y1_formatted = y1#[string(format(point, ",.3f")) for point in y1]
+    y2_formatted = y2#[string(format(point, ",.3f")) for point in y2]
+
+    plot(x1, y1_formatted, label="MILP", linewidth=2, xlabel="seconds", ylabel="objective value")
+    plot!(x2, y2_formatted, label="IPB", linewidth=2)
 end
 
 function plot_comparison_CG(CG_AMOUNT::Vector{Any}, CG_LB::Vector{Any})
@@ -113,9 +114,11 @@ end
 
 
 
-
 # IPB Algorithm
 function IPB(fileName::String, no_CG::Bool)
+    CG_iteration = 0
+    IPB_iteration = 0
+    currentBest = Inf
     output_file = open(output_filename, "w")
     write(output_file, "$fileName start IPB\n")
     
@@ -148,6 +151,13 @@ function IPB(fileName::String, no_CG::Bool)
         write(output_file, "\nStart IPB with CG\n")
         A_prime_RMP = init_cols(N, b)
         A_prime_CG = copy(A_prime_RMP)
+        c_prime_CG = compute_cikB(A_prime_CG, N)
+        a_prime_CG = create_a_dict(A_prime_CG, N)
+        write(output_file, "\nInitialize CG model\n")
+        # Initialize model for CG 
+        x_CG, flow_conservation_constraints_CG, partitioning_constraints_CG, u_CG, v_CG, obj_CG, model_CG = solve_optimal_partitioning_problem(A_prime_CG, c_prime_CG, false, N, DEBUGGING)
+        write(output_file, "CG model initialized in $(time() - start_time) seconds\n")
+    
     else
         write(output_file, "\nStart IPB without CG\n")
         A_prime_CG = Tuple{Int,Int,Vector{Int}}[]
@@ -156,28 +166,21 @@ function IPB(fileName::String, no_CG::Bool)
             push!(A_prime_CG, (k, i, B))
         end
         A_prime_RMP = init_cols(N, b)
+        batchPool = A_prime_CG
     end
-    close(output_file)
 
 
     c_prime_RMP = compute_cikB(A_prime_RMP, N)
-    c_prime_CG = compute_cikB(A_prime_CG, N)
     a_prime_RMP = create_a_dict(A_prime_RMP, N)
-    a_prime_CG = create_a_dict(A_prime_CG, N)
 
     price_dict = Dict()
-    open(output_file, "a")
+    sorted_price_dict = Dict()
     start_time = time()
     write(output_file, "\nInitialize RMP model\n")
     # Initialize model for RMP (used in IPB)
     x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, u_RMP, v_RMP, obj_RMP, model_RMP = solve_optimal_partitioning_problem(A_prime_RMP, c_prime_RMP, true, N, DEBUGGING)
     write(output_file, "RMP model initialized in $(time() - start_time) seconds\n")
     
-    write(output_file, "\nInitialize CG model\n")
-    # Initialize model for CG 
-    x_CG, flow_conservation_constraints_CG, partitioning_constraints_CG, u_CG, v_CG, obj_CG, model_CG = solve_optimal_partitioning_problem(A_prime_CG, c_prime_CG, false, N, DEBUGGING)
-    write(output_file, "CG model initialized in $(time() - start_time) seconds\n")
-
     
     # Step 2: Column Generation: Initial Column Pool and Integer Solution
 
@@ -223,7 +226,9 @@ function IPB(fileName::String, no_CG::Bool)
         elapsed_time = time() - total_start_time
         push!(CG_LB_array, (objective_value(model_CG), elapsed_time))
         push!(CG_AMOUNT_array, (length(A_prime), elapsed_time))
+        batchPool = keys(x_CG)
     end
+    CG_iteration = 0
 
     start_time_IPB = time()
     # Step 3: Solve Restricted Master problem
@@ -260,104 +265,197 @@ function IPB(fileName::String, no_CG::Bool)
     #push!(IPB_UB_array, (objective_value(model_RMP), elapsed_time))
     output_file = open(output_filename, "a") 
     write(output_file, "\nStart IPB\n")
-    write(output_file, "IPB_UB: $(objective_value(model_RMP)) at iteration $IPB_iteration\n")
     close(output_file)
 
-    while true
-        IPB_iteration += 1
-        optimize!(model_RMP)
-        u_RMP, v_RMP = get_duals(model_RMP, n, flow_conservation_constraints_RMP, partitioning_constraints_RMP) 
+    # Initial column pool -> A_prime_CG (this variable contains all columns (previously computed by CG))
+    # Integer solution (solve RMP until feasible solution is found)
+    
 
-        # Check if duals are found, if not, stop
-        if(u_RMP[1] == Inf || v_RMP[1] == Inf)
-            println("No duals found")
-            break
-        end
-        
-        # Step 4: pricing
-
-        # empty price_dict
-        empty!(price_dict)
-
-        # for each column in the column pool, calculate the reduced cost
-        for element in keys(x_CG)
-            (i, k, B) = element
-            #price_dict[element] =  pB(B, N) * (n - i + 1) - (u[i] - u[k]) - sum(v[j] for j in B)
-            price_dict[element] =  get_arc_cost(element, N) - (u_RMP[i] - u_RMP[k]) - sum(v_RMP[j] for j in B)
-
-        end
-
-        # Sort price_dict by value ascending and only keep columns with negative reduced cost
-        sorted_price_dict = sort(collect(filter(x -> x[2] < 0, price_dict)), by = x -> x[2])
-
-        if length(sorted_price_dict) == 0
-            println("No columns with negative reduced cost found")
-            break
-        end
-
-        # Step 5 Add columns
-        # extract NCOLOUMNS columns with highest reduced cost from price_dict
-        if NCOLOUMNS > length(sorted_price_dict)
-            NCOLOUMNS_intermediate = length(sorted_price_dict)
-        else
-            NCOLOUMNS_intermediate = NCOLOUMNS
+    # Callback function for a first feasible solution
+    function callback_feasibleSolution(cb_data, cb_where::Cint)
+        if cb_where == GRB_CB_MIPSOL
+            GRBterminate(JuMP.backend(model_RMP).optimizer.model.inner)
         end 
-        x_toAdd = sorted_price_dict[1:NCOLOUMNS_intermediate]
-        
+    end
 
-        #print(x_toAdd)
+    MOI.set(model_RMP, Gurobi.CallbackFunction(), callback_feasibleSolution)
 
-        x_toAdd = [x[1] for x in x_toAdd]
-        x_toAdd = filter(x -> !(x in A_prime_RMP), x_toAdd)
+    # Solve RMP with initial column pool
+    for element in values(x_RMP)
+        set_binary(element)
+    end
+    optimize!(model_RMP)
 
-        println("\nAdded $(length(x_toAdd)) columns to the reduced model\n")
+    # Check if feasible solution is found
+    x_RMP_feasibleSolution = Dict(arc => value(x_RMP[arc]) for arc in A_prime_RMP if value(x_RMP[arc]) != 0)
 
-        model_RMP, A_prime_RMP, x_RMP , A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP = update_model(model_RMP, x_toAdd, A_prime_RMP, x_RMP, N, A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP)
+    A_prime_RMP_feasibleSolution = keys(x_RMP_feasibleSolution)
+    c_prime_RMP_feasibleSolution = compute_cikB(A_prime_RMP_feasibleSolution, N)
+
+    # Solve RMP with feasible solution
+    x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, model_RMP = create_model(A_prime_RMP_feasibleSolution, c_prime_RMP_feasibleSolution, N)
+    optimize!(model_RMP)
+    currentBest = objective_value(model_RMP)
+    
+
+    while IPB_iteration < IPB_MAX_ITERATION
+        IPB_iteration += 1
+        CG_iteration = 0
+        output_file = open(output_filename, "a")
+        write(output_file, "\nIPB Iteration: $IPB_iteration\n")
+        close(output_file)
+
+        # Column Generation
+        #for _ in 1:CG_MAX_ITERATION
+        while CG_iteration < CG_MAX_ITERATION
+            optimize!(model_RMP)
+            CG_iteration += 1
+            CG_iteration_start_time = time()
+
+            output_file = open(output_filename, "a") 
+            write(output_file, "\nCG Iteration $CG_iteration\n")
+            
+            u_RMP, v_RMP = get_duals(model_RMP, n, flow_conservation_constraints_RMP, partitioning_constraints_RMP) 
+
+            # Check if duals are found, if not, stop
+            if(u_RMP[1] == Inf || v_RMP[1] == Inf)
+                println("No duals found")
+                break
+            end
+            
+            # Step 4: pricing 
+            # empty price_dict and sorted_price_dict
+            empty!(price_dict)
+            empty!(sorted_price_dict)
+
+            # for each column in the column pool, calculate the reduced cost
+            for element in batchPool
+                (i, k, B) = element
+                price_dict[element] =  get_arc_cost(element, N) - (u_RMP[i] - u_RMP[k]) - sum(v_RMP[j] for j in B)
+
+            end
+
+            # Sort price_dict by value ascending and only keep columns with negative reduced cost
+            sorted_price_dict = sort(collect(filter(x -> x[2] < 0, price_dict)), by = x -> x[2])
+            
+            if length(sorted_price_dict) == 0
+                println("No columns with negative reduced cost found")
+                break
+            end
+
+            # Step 5 Add columns
+            # extract NCOLOUMNS columns with highest reduced cost from price_dict
+            if NCOLOUMNS > length(sorted_price_dict)
+                NCOLOUMNS_intermediate = length(sorted_price_dict)
+            else
+                NCOLOUMNS_intermediate = NCOLOUMNS
+            end 
+            x_toAdd = sorted_price_dict[1:NCOLOUMNS_intermediate]
+            
+
+            #print(x_toAdd)
+
+            x_toAdd = [x[1] for x in x_toAdd]
+            #x_toAdd = filter(x -> !(x in A_prime_RMP), x_toAdd)
+            model_RMP, A_prime_RMP, x_RMP , A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP = update_model(model_RMP, x_toAdd, A_prime_RMP, x_RMP, N, A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP)
+            optimize!(model_RMP)
+
+            elapsed_time_CG = time() - CG_iteration_start_time
+            println("\nAdded $(length(x_toAdd)) columns to the reduced model\n")
+            write(output_file, "Obj Relaxed: $(objective_value(model_RMP))\n")
+            write(output_file, "Columns added to RMP: $(length(x_toAdd)) in $elapsed_time_CG\n")
+            close(output_file)
+            
+            if(CG_iteration == CG_MAX_ITERATION)
+                println("CG reached maximum number of iterations")
+            end
+        end 
         
         # Step 6: Solve Restricted Master problem (until exit criteria is met)
+        MOI.set(model_RMP, Gurobi.CallbackFunction(), callback_checkExit)
         for element in values(x_RMP)
             set_integer(element) 
         end
-        
         
         optimize!(model_RMP)
 
         obj = objective_value(model_RMP)
         elapsed_time_IPB = time() - start_time_IPB
         push!(IPB_UB_array, (obj, elapsed_time_IPB))
+        output_file = open(output_filename, "a")
+        write(output_file, "\n\nNew integer solution found: $(obj) in $elapsed_time_IPB seconds\n")
+        close(output_file)
+
+
+    
         # Step 7: New best Solution?
+        # If yes, set solution to initial columns of RMP and go to step 4
+        if(obj < currentBest)
+            output_file = open(output_filename, "a")
+            write(output_file, "\n\nNew best integer solution found! $(obj)\n")
+            write(output_file, "New best integer solution: $(obj)\n")
+
+            
+
+            currentBest = obj
+                
+            # Generate new model with only feasible solution
+            x_RMP_feasibleSolution = Dict(arc => value(x_RMP[arc]) for arc in keys(x_RMP) if value(x_RMP[arc]) != 0)
+            A_prime_RMP = collect(keys(x_RMP_feasibleSolution))
+            c_prime_RMP = compute_cikB(A_prime_RMP, N)        
+
+            x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, model_RMP = create_model(A_prime_RMP, c_prime_RMP, N)
+
+            close(output_file)
+        else
+            for element in values(x_RMP)
+                unset_integer(element) 
+            end
+        end
+            # Add more columns to RMP
+
+        
+
+        #=optimize!(model_RMP)
+
+            for element in values(x_RMP)
+                if(is_integer(element))
+                    unset_integer(element) 
+                end
+            end
+            optimize!(model_RMP)    
         println("New best solution found: $(obj)")
+        close(output_file)
 
-        for element in values(x_RMP)
-            unset_integer(element) 
-        end
-
-        optimize!(model_RMP)
-
-
-        #if(time() - total_start_time > 6000 || length(x_toAdd) == 0)
-        if(length(x_toAdd) == 0)
-            println("Exited IPB loop ")
-            break
-        end
-
+        #for element in values(x_RMP)
+        #    unset_integer(element) 
+        #end
+        =#
+        
 
 
     end
-    ## Try to access information through the callback function about incumbent solution, REVISE
-    MOI.set(model_CG, Gurobi.CallbackFunction(), callback_Incumbent)
+    
+    
+    #=
+    if(model_CG)
+    
+        ## Try to access information through the callback function about incumbent solution, revise!!
+        MOI.set(model_CG, Gurobi.CallbackFunction(), callback_Incumbent)
 
-    # Solve full model with integer variables
-    for element in values(x_CG)
-        set_integer(element) 
+        # Solve full model with integer variables
+        for element in values(x_CG)
+            set_integer(element) 
+        end 
+        optimize!(model_CG)
+
     end
-
-    optimize!(model_CG)
+    =#
 end 
 
 ##### DEBGUGGING AREA #####
 
-IPB("Data/Instances_txt/inst_200_30_1.txt", true)
+IPB("Data/Instances_txt/inst_200_10_4.txt", true)
 
 
 
@@ -378,4 +476,5 @@ MILP_UB_array
 
 
 
-plot_MILP_IPB(MILP_UB_array, IPB_UB_array, 1200)
+plot_MILP_IPB(MILP_UB_array, IPB_UB_array, 30)
+
