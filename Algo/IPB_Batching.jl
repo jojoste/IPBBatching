@@ -13,13 +13,16 @@ include("CG_Batching.jl")
 # model_RMP -> used for IPB, reduced model only with inital columns, will be reassigned in each iteration
 
 # ADAPT THE FOLLOWING CONSTANTS TO YOUR NEEDS
-RMP_RUNTIME = 60
+RMP_RUNTIME = 120
 GAP_THRESHOLD = 0.01
 CG_MAX_ITERATION = 10
-NCOLOUMNS = 100
+NCOLOUMNS = 1000
+
+PRICING_PER_NODE = false
+PRICING_PER_NODE_COLUMNS = 5
 
 # Maximum number of iterations for IPB (removed later)
-IPB_MAX_ITERATION  = 10
+IPB_MAX_ITERATION  = 1000
 
 best_sol = Inf
 
@@ -39,7 +42,7 @@ filenamesJSON = glob("*.json", directoryJSON)
 filenamesJSON = [replace(filename, ".json" => "") for filename in filenamesJSON]
 filenamesJSON = [replace(filename, "Data/CG_JSON/" => "") for filename in filenamesJSON]
 
-
+# Callback Function for full MILP model
 function callback_Incumbent(cb_data, cb_where)
     if cb_where == GRB_CB_MIPSOL
         obj = Ref{Cdouble}()
@@ -119,6 +122,10 @@ function IPB(fileName::String, no_CG::Bool)
     CG_iteration = 0
     IPB_iteration = 0
     currentBest = Inf
+
+    parts = split(fileName, "/")  # Split the string at each "/"
+    instance_name = parts[end]  # Get the last part of the split string
+    output_filename = "Output/try_$(instance_name)_IPB_$(timestamp).txt"
     output_file = open(output_filename, "w")
     write(output_file, "$fileName start IPB\n")
     
@@ -175,6 +182,7 @@ function IPB(fileName::String, no_CG::Bool)
 
     price_dict = Dict()
     sorted_price_dict = Dict()
+    grouped_price_dict = Dict()
     start_time = time()
     write(output_file, "\nInitialize RMP model\n")
     # Initialize model for RMP (used in IPB)
@@ -323,10 +331,12 @@ function IPB(fileName::String, no_CG::Bool)
                 break
             end
             
+
             # Step 4: pricing 
             # empty price_dict and sorted_price_dict
             empty!(price_dict)
             empty!(sorted_price_dict)
+            empty!(grouped_price_dict)
 
             # for each column in the column pool, calculate the reduced cost
             for element in batchPool
@@ -335,13 +345,42 @@ function IPB(fileName::String, no_CG::Bool)
 
             end
 
-            # Sort price_dict by value ascending and only keep columns with negative reduced cost
-            sorted_price_dict = sort(collect(filter(x -> x[2] < 0, price_dict)), by = x -> x[2])
-            
-            if length(sorted_price_dict) == 0
-                println("No columns with negative reduced cost found")
-                break
-            end
+            if(!PRICING_PER_NODE)
+                # Sort price_dict by value ascending and only keep columns with negative reduced cost
+                sorted_price_dict = sort(collect(filter(x -> x[2] < 0, price_dict)), by = x -> x[2])
+                if length(sorted_price_dict) == 0
+                    println("No columns with negative reduced cost found")
+                    break
+                end
+            else
+                grouped_price_dict = Dict()
+                for (element, cost) in price_dict
+                    (i, k, B) = element
+                    if haskey(grouped_price_dict, i)
+                        push!(grouped_price_dict[i], (element, cost))
+                    else
+                        grouped_price_dict[i] = [(element, cost)]
+                    end
+                end
+
+                # Sort the tuples in each group by cost
+                for (node, tuples) in grouped_price_dict
+                    sort!(tuples, by = x -> x[2])
+                end
+
+                # Now, for each node, keep only the three tuples with the lowest cost
+                for (node, tuples) in grouped_price_dict
+                    grouped_price_dict[node] = tuples[1:min(PRICING_PER_NODE_COLUMNS, length(tuples))]
+                end
+
+                # Flatten the grouped_price_dict to have a list of all tuples
+                sorted_price_dict = [tup for (node, tuples) in grouped_price_dict for tup in tuples]
+
+                if isempty(sorted_price_dict)
+                    println("No columns with negative reduced cost found")
+                    break
+                end
+            end 
 
             # Step 5 Add columns
             # extract NCOLOUMNS columns with highest reduced cost from price_dict
@@ -356,7 +395,9 @@ function IPB(fileName::String, no_CG::Bool)
             #print(x_toAdd)
 
             x_toAdd = [x[1] for x in x_toAdd]
-            #x_toAdd = filter(x -> !(x in A_prime_RMP), x_toAdd)
+            x_toAdd = filter(x -> !(x in A_prime_RMP), x_toAdd)
+
+
             model_RMP, A_prime_RMP, x_RMP , A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP = update_model(model_RMP, x_toAdd, A_prime_RMP, x_RMP, N, A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP)
             optimize!(model_RMP)
 
@@ -392,51 +433,27 @@ function IPB(fileName::String, no_CG::Bool)
         # If yes, set solution to initial columns of RMP and go to step 4
         if(obj < currentBest)
             output_file = open(output_filename, "a")
-            write(output_file, "\n\nNew best integer solution found! $(obj)\n")
-            write(output_file, "New best integer solution: $(obj)\n")
-
-            
-
             currentBest = obj
                 
             # Generate new model with only feasible solution
             x_RMP_feasibleSolution = Dict(arc => value(x_RMP[arc]) for arc in keys(x_RMP) if value(x_RMP[arc]) != 0)
+            length_x = length(x_RMP_feasibleSolution)
             A_prime_RMP = collect(keys(x_RMP_feasibleSolution))
-            c_prime_RMP = compute_cikB(A_prime_RMP, N)        
+            c_prime_RMP = compute_cikB(A_prime_RMP, N) 
+            write(output_file, "\n\nNew best integer solution found!\n")
+            write(output_file, "New best integer solution: $(obj)\n")
+            write(output_file, "Amount columns in solution: $length_x\n")       
 
             x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, model_RMP = create_model(A_prime_RMP, c_prime_RMP, N)
 
             close(output_file)
         else
+            # Add more columns to RMP
             for element in values(x_RMP)
                 unset_integer(element) 
             end
         end
-            # Add more columns to RMP
-
-        
-
-        #=optimize!(model_RMP)
-
-            for element in values(x_RMP)
-                if(is_integer(element))
-                    unset_integer(element) 
-                end
-            end
-            optimize!(model_RMP)    
-        println("New best solution found: $(obj)")
-        close(output_file)
-
-        #for element in values(x_RMP)
-        #    unset_integer(element) 
-        #end
-        =#
-        
-
-
     end
-    
-    
     #=
     if(model_CG)
     
@@ -455,7 +472,7 @@ end
 
 ##### DEBGUGGING AREA #####
 
-IPB("Data/Instances_txt/inst_200_10_4.txt", true)
+IPB("Data/Instances_txt/inst_500_10_4.txt", true)
 
 
 
