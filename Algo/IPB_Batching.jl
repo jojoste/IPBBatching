@@ -31,6 +31,7 @@ CG_AMOUNT_array = []
 IPB_UB_array = []
 IPB_AMOUNT_array = []
 MILP_UB_array = []
+Integer_Iteration = 1
 
 directoryInstances = "Data/Instances_txt/"
 filenamesInstances = glob("*.txt", directoryInstances)
@@ -59,60 +60,12 @@ function callback_Incumbent(cb_data, cb_where)
     end
 end
 
-function plot_MILP_IPB(MILP_UB_array, IPB_UB_array, Timelimit)
-    arr1 = [(value, time) for (value, time) in MILP_UB_array if time < Timelimit]
-    arr2 = [(value, time) for (value, time) in IPB_UB_array if time < Timelimit]
+function configure_gurobi_logging(log_filename::AbstractString, model::Model)
+    # Set Gurobi output flag to 1 for more information during solving
+    set_optimizer_attribute(model, "OutputFlag", 1)
 
-    y1 = [point[1] for point in arr1]
-    x1 = [point[2] for point in arr1]
-    y2 = [point[1] for point in arr2]
-    x2 = [point[2] for point in arr2]
-
-    # Format y-axis values without scientific notation
-    y1_formatted = y1#[string(format(point, ",.3f")) for point in y1]
-    y2_formatted = y2#[string(format(point, ",.3f")) for point in y2]
-
-    plot(x1, y1_formatted, label="MILP", linewidth=2, xlabel="seconds", ylabel="objective value")
-    plot!(x2, y2_formatted, label="IPB", linewidth=2)
-end
-
-function plot_comparison_CG(CG_AMOUNT::Vector{Any}, CG_LB::Vector{Any})
-    p1 = plot([x[2] for x in CG_AMOUNT], [x[1] for x in CG_AMOUNT], label = "Number of columns", line = :blue, ylabel = "Number of columns", legend = :topright)
-    
-    p2 = twinx()
-    plot!(p2, [x[2] for x in CG_LB], [x[1] for x in CG_LB], label = "LP objective", line = :red, ylabel = "LP objective", legend = :topleft)
-
-    plot!(title = "Comparison LP-Objective and Amount Columns")
-
-    return p1
-end
-
-function plot_CG_LB(CG_AMOUNT_array, CG_LB_array)
-    # Extract x and y values from CG_AMOUNT_array
-    x_cg = [pair[1] for pair in CG_AMOUNT_array]
-    y_cg = [pair[2] for pair in CG_AMOUNT_array]
-
-    # Extract x and y values from CG_LB_array
-    x_lb = [pair[1] for pair in CG_LB_array]
-    y_lb = [pair[2] for pair in CG_LB_array]
-
-    # Plot the data
-    plot(x_cg, y_cg, label="CG_AMOUNT", marker=:circle)
-    plot!(x_lb, y_lb, label="CG_LB", marker=:square)
-
-    # Customize the plot
-    xlabel!("CG Iteration")
-    ylabel!("Value")
-    title!("CG_AMOUNT vs CG_LB")
-
-    # Generate timestamp for filename
-    timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
-
-    # Save the plot with timestamp in the filename
-    savefig("CG_$timestamp.png")
-
-    # Display the plot
-    display(plot)
+    # Set Gurobi log file to see detailed solver output
+    set_optimizer_attribute(model, "LogFile", log_filename)
 end
 
 
@@ -292,6 +245,8 @@ function IPB(fileName::String, no_CG::Bool)
     for element in values(x_RMP)
         set_binary(element)
     end
+    configure_gurobi_logging(output_filename, model_RMP)
+
     optimize!(model_RMP)
 
     # Check if feasible solution is found
@@ -302,6 +257,7 @@ function IPB(fileName::String, no_CG::Bool)
 
     # Solve RMP with feasible solution
     x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, model_RMP = create_model(A_prime_RMP_feasibleSolution, c_prime_RMP_feasibleSolution, N)
+    configure_gurobi_logging(output_filename, model_RMP)
     optimize!(model_RMP)
     currentBest = objective_value(model_RMP)
     
@@ -421,10 +377,14 @@ function IPB(fileName::String, no_CG::Bool)
         optimize!(model_RMP)
 
         obj = objective_value(model_RMP)
+        Integer_Iteration = +1
         elapsed_time_IPB = time() - start_time_IPB
         push!(IPB_UB_array, (obj, elapsed_time_IPB))
         output_file = open(output_filename, "a")
-        write(output_file, "\n\nNew integer solution found: $(obj) in $elapsed_time_IPB seconds\n")
+        write(output_file, "\n\nNew integer solution found: $(obj) \n")
+        write(output_file, "Time for iteration $(Integer_Iteration): $(elapsed_time_IPB) seconds\n")
+        current_total_time = time() - start_time
+        write(output_file, "Total time passed: $(current_total_time) seconds\n")
         close(output_file)
 
 
@@ -445,6 +405,7 @@ function IPB(fileName::String, no_CG::Bool)
             write(output_file, "Amount columns in solution: $length_x\n")       
 
             x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, model_RMP = create_model(A_prime_RMP, c_prime_RMP, N)
+            configure_gurobi_logging(output_filename, model_RMP)
 
             close(output_file)
         else
@@ -472,26 +433,9 @@ end
 
 ##### DEBGUGGING AREA #####
 
-IPB("Data/Instances_txt/inst_500_10_4.txt", true)
-
-
-
-#IPB("Data/inst_200_50_3.txt", 20)
-
-plot_CG_LB(CG_AMOUNT_array) 
-
-
-plot_comparison_CG(CG_AMOUNT_array, CG_LB_array)
-
-plot_CG_LB(IPB_UB_array)
-
-
-plot_CG_LB(MILP_UB_array)
-
-MILP_UB_array
+#IPB("Data/Instances_txt/inst_200_10_4.txt", true)
 
 
 
 
-plot_MILP_IPB(MILP_UB_array, IPB_UB_array, 30)
 
