@@ -13,11 +13,12 @@ include("CG_Batching.jl")
 # model_RMP -> used for IPB, reduced model only with inital columns, will be reassigned in each iteration
 
 # ADAPT THE FOLLOWING CONSTANTS TO YOUR NEEDS
-RMP_RUNTIME = 120
-GAP_THRESHOLD = 0.01
+RMP_RUNTIME = 30
+GAP_THRESHOLD = 0.1
 CG_MAX_ITERATION = 10
-NCOLOUMNS = 1000
+NCOLOUMNS = 200
 
+# Chose the 5 most violated columns per node
 PRICING_PER_NODE = false
 PRICING_PER_NODE_COLUMNS = 5
 
@@ -43,23 +44,9 @@ filenamesJSON = glob("*.json", directoryJSON)
 filenamesJSON = [replace(filename, ".json" => "") for filename in filenamesJSON]
 filenamesJSON = [replace(filename, "Data/CG_JSON/" => "") for filename in filenamesJSON]
 
-# Callback Function for full MILP model
-function callback_Incumbent(cb_data, cb_where)
-    if cb_where == GRB_CB_MIPSOL
-        obj = Ref{Cdouble}()
-        runtime = Ref{Cdouble}()
-        # When a new incumbent is found, get the objective and runtime
-        #obj = Gurobi.cbget(cb_data, cb_where, GRB_CB_MIPSOL_OBJ)
-        GRBcbget(cb_data, cb_where, GRB_CB_MIPSOL_OBJ, obj)
-        #obj = GRB_CB_MIPSOL_OBJ
-        #runtime = Gurobi.cbget(cb_data, cb_where, GRB_CB_RUNTIME)
-        GRBcbget(cb_data, cb_where, GRB_CB_RUNTIME, runtime)
-        #runtime = GRB_CB_RUNTIME
-        #println("New incumbent: ", obj, ", Runtime: ", runtime)
-        push!(MILP_UB_array, (obj.x, runtime.x))
-    end
-end
 
+
+# Log file for Gurobi
 function configure_gurobi_logging(log_filename::AbstractString, model::Model)
     # Set Gurobi output flag to 1 for more information during solving
     set_optimizer_attribute(model, "OutputFlag", 1)
@@ -76,9 +63,9 @@ function IPB(fileName::String, no_CG::Bool)
     IPB_iteration = 0
     currentBest = Inf
 
-    parts = split(fileName, "/")  # Split the string at each "/"
-    instance_name = parts[end]  # Get the last part of the split string
-    output_filename = "Output/try_$(instance_name)_IPB_$(timestamp).txt"
+    parts = split(fileName, "/")
+    instance_name = parts[end]
+    output_filename = "Output/IPB_$(instance_name)_RMP_RUNTIME_$(RMP_RUNTIME)_NCOLOUMNS_$(NCOLOUMNS)_GAP_THRESHOLD_$(GAP_THRESHOLD)_$(timestamp).txt"
     output_file = open(output_filename, "w")
     write(output_file, "$fileName start IPB\n")
     
@@ -126,7 +113,8 @@ function IPB(fileName::String, no_CG::Bool)
             push!(A_prime_CG, (k, i, B))
         end
         A_prime_RMP = init_cols(N, b)
-        batchPool = A_prime_CG
+        #A_prime_RMP = copy(A_prime_CG)
+        batchPool = copy(A_prime_CG)
     end
 
 
@@ -136,6 +124,7 @@ function IPB(fileName::String, no_CG::Bool)
     price_dict = Dict()
     sorted_price_dict = Dict()
     grouped_price_dict = Dict()
+    
     start_time = time()
     write(output_file, "\nInitialize RMP model\n")
     # Initialize model for RMP (used in IPB)
@@ -253,7 +242,9 @@ function IPB(fileName::String, no_CG::Bool)
     x_RMP_feasibleSolution = Dict(arc => value(x_RMP[arc]) for arc in A_prime_RMP if value(x_RMP[arc]) != 0)
 
     A_prime_RMP_feasibleSolution = keys(x_RMP_feasibleSolution)
+    A_prime_RMP = collect(keys(x_RMP_feasibleSolution))
     c_prime_RMP_feasibleSolution = compute_cikB(A_prime_RMP_feasibleSolution, N)
+    c_prime_RMP = c_prime_RMP_feasibleSolution
 
     # Solve RMP with feasible solution
     x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, model_RMP = create_model(A_prime_RMP_feasibleSolution, c_prime_RMP_feasibleSolution, N)
@@ -270,7 +261,6 @@ function IPB(fileName::String, no_CG::Bool)
         close(output_file)
 
         # Column Generation
-        #for _ in 1:CG_MAX_ITERATION
         while CG_iteration < CG_MAX_ITERATION
             optimize!(model_RMP)
             CG_iteration += 1
@@ -287,18 +277,21 @@ function IPB(fileName::String, no_CG::Bool)
                 break
             end
             
-
             # Step 4: pricing 
+            function get_reducedCost(element, N, u_RMP, v_RMP)
+                (i, k, B) = element
+                return get_arc_cost(element, N) - (u_RMP[i] - u_RMP[k]) - sum(v_RMP[j] for j in B)
+            end
+
+
             # empty price_dict and sorted_price_dict
             empty!(price_dict)
             empty!(sorted_price_dict)
             empty!(grouped_price_dict)
 
             # for each column in the column pool, calculate the reduced cost
-            for element in batchPool
-                (i, k, B) = element
-                price_dict[element] =  get_arc_cost(element, N) - (u_RMP[i] - u_RMP[k]) - sum(v_RMP[j] for j in B)
-
+            Threads.@threads for element in batchPool
+                price_dict[element] = get_reducedCost(element, N, u_RMP, v_RMP)
             end
 
             if(!PRICING_PER_NODE)
@@ -346,21 +339,20 @@ function IPB(fileName::String, no_CG::Bool)
                 NCOLOUMNS_intermediate = NCOLOUMNS
             end 
             x_toAdd = sorted_price_dict[1:NCOLOUMNS_intermediate]
-            
-
-            #print(x_toAdd)
 
             x_toAdd = [x[1] for x in x_toAdd]
             x_toAdd = filter(x -> !(x in A_prime_RMP), x_toAdd)
+
+            print(typeof(x_toAdd))
 
 
             model_RMP, A_prime_RMP, x_RMP , A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP = update_model(model_RMP, x_toAdd, A_prime_RMP, x_RMP, N, A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP)
             optimize!(model_RMP)
 
             elapsed_time_CG = time() - CG_iteration_start_time
-            println("\nAdded $(length(x_toAdd)) columns to the reduced model\n")
+            println("\n\nAdded $(length(x_toAdd)) columns to the reduced model\n")
             write(output_file, "Obj Relaxed: $(objective_value(model_RMP))\n")
-            write(output_file, "Columns added to RMP: $(length(x_toAdd)) in $elapsed_time_CG\n")
+            write(output_file, "Columns added to RMP: $(length(x_toAdd)) in $elapsed_time_CG\n\n")
             close(output_file)
             
             if(CG_iteration == CG_MAX_ITERATION)
@@ -394,15 +386,21 @@ function IPB(fileName::String, no_CG::Bool)
         if(obj < currentBest)
             output_file = open(output_filename, "a")
             currentBest = obj
+
+            current_total_time = time() - start_time
                 
             # Generate new model with only feasible solution
             x_RMP_feasibleSolution = Dict(arc => value(x_RMP[arc]) for arc in keys(x_RMP) if value(x_RMP[arc]) != 0)
-            length_x = length(x_RMP_feasibleSolution)
+            length_x = length(x_RMP)
+            length_x_feasible = length(x_RMP_feasibleSolution)
             A_prime_RMP = collect(keys(x_RMP_feasibleSolution))
             c_prime_RMP = compute_cikB(A_prime_RMP, N) 
             write(output_file, "\n\nNew best integer solution found!\n")
             write(output_file, "New best integer solution: $(obj)\n")
-            write(output_file, "Amount columns in solution: $length_x\n")       
+            write(output_file, "Amount columns in solution: $length_x_feasible\n") 
+            write(output_file, "Amount columns in batch pool: $length_x\n")
+            write(output_file, "Total time passed for best solution: $current_total_time\n")
+                  
 
             x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, model_RMP = create_model(A_prime_RMP, c_prime_RMP, N)
             configure_gurobi_logging(output_filename, model_RMP)
@@ -433,7 +431,7 @@ end
 
 ##### DEBGUGGING AREA #####
 
-#IPB("Data/Instances_txt/inst_200_10_4.txt", true)
+#IPB("Data/Instances_txt/inst_100_10_4.txt", true)
 
 
 

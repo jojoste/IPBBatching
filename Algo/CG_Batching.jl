@@ -286,10 +286,10 @@ function update_model(model, A_new, A, x, N, a, c, flow_conservation_constraints
     # Update model with new columns
     for arc in A_new
         # Check if arc is already in A
-        if !haskey(x, arc)
+        if !haskey(x, A)
             # Add new arc to A
             push!(A, arc)
-            
+
             # Get cost for new arc and add to c
             c[arc] = get_arc_cost(arc, N)
 

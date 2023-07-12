@@ -1,6 +1,5 @@
-using PyPlot
-import Pkg; Pkg.add("PyPlot")
-log_file_path = "Output/try_inst_200_10_4.txt_IPB_2023-07-10_13-57-10.txt"
+using Plots
+using Printf
 
 function plot_MILP_IPB(MILP_UB_array, IPB_UB_array, Timelimit)
     arr1 = [(value, time) for (value, time) in MILP_UB_array if time < Timelimit]
@@ -58,7 +57,31 @@ function plot_CG_LB(CG_AMOUNT_array, CG_LB_array)
     display(plot)
 end
 
+function extract_MILP_information(output_file::String)
+    log_output = read(output_file, String)
+    rows = filter(row -> startswith(row, "H"), split(log_output, "\n"))
 
+    Incumbent = []
+    column_last = []
+    for row in rows
+        columns = split(row)
+        if !isempty(columns) && columns[1] == "H"
+            push!(Incumbent, columns[4])
+            push!(column_last, columns[end])
+        end
+    end
+
+    column_last = replace.(column_last, r"s$" => "")
+    column_last = parse.(Float64, column_last)
+    Incumbent = parse.(Float64, Incumbent)
+
+    return Incumbent, column_last
+end
+
+
+function convert_to_float(array::Vector{String})
+    return parse.(Float64, array)
+end
 
 function extract_info_from_log(log_file_path::String, patterns::Array{String, 1})
     log_output = read(log_file_path, String)
@@ -76,67 +99,43 @@ function extract_info_from_log(log_file_path::String, patterns::Array{String, 1}
             end
         end
     end
-    return extracted_info
+    converted_arrays = [extracted_info[pattern] for pattern in patterns]
+    #converted_arrays = [replace.(convert_to_float(array), r"[^0-9.]" => "") for array in extracted_arrays]
+    
+    converted_arrays = [parse.(Float64, array) for array in converted_arrays]
+    
+    return converted_arrays
 end
 
-solution_dictionary = extract_info_from_log(log_file_path, ["New integer solution", "Total time passed"])
 
 
-new_integer_solutions = solution_dictionary["New integer solution"]
-total_time_passed = solution_dictionary["Total time passed"]
+IPB_log_file_path = "Output/IPB_inst_100_10_4.txt_RMP_RUNTIME_30_NCOLOUMNS_200_GAP_THRESHOLD_0.1_2023-07-12_11-25-35.txt"
+IPB_new_integer_solutions, IPB_total_time_passed = extract_info_from_log(IPB_log_file_path, ["New best integer solution:", "Total time passed for best solution:"])
 
+MILP_log_file_path = "Output/MILP_inst_100_10_4.txt_2023-07-12_11-44-18.txt"
+MILP_new_integer_solutions, MILP_total_time_passed =  extract_MILP_information(MILP_log_file_path)
 
-total_time_passed = [replace(time, " seconds" => "") for time in total_time_passed]
+default(fontfamily = "Times New Roman")
 
-
-new_integer_solutions
-
-total_time_passed
-
-
-function convert_to_float(array::Vector{String})
-    return parse.(Float64, array)
-end
-new_integer_solutions = convert_to_float(new_integer_solutions)
-total_time_passed = convert_to_float(total_time_passed)
-
-
-
-(total_time_passed, new_integer_solutions, marker = :circle, legend = false, xlabel = "seconds", ylabel = "objective value", title = "IPB")
-
-
-plot(total_time_passed, new_integer_solutions,
+plot(IPB_total_time_passed, IPB_new_integer_solutions,
      xlabel = "Total Time Passed",
      ylabel = "New Integer Solutions",
      title = "Integer Solutions over Time",
-     legend = false)
+     legend = true,
+     label="IPB",
+     xaxis = (formatter = x -> @sprintf("%.0f", x)),
+     yaxis = (formatter = y -> @sprintf("%.0f", y))
+)
 
-ax = gca()
-ax.ticklabel_format(useMathText=false)
-
-
-plot_data(total_time_passed, new_integer_solutions)
-
-
-
-#=
-#IPB("Data/inst_200_50_3.txt", 20)
-
-plot_CG_LB(CG_AMOUNT_array) 
-
-
-plot_comparison_CG(CG_AMOUNT_array, CG_LB_array)
-
-plot_CG_LB(IPB_UB_array)
-
-
-plot_CG_LB(MILP_UB_array)
-
-MILP_UB_array
+plot!(MILP_total_time_passed, MILP_new_integer_solutions,
+      label="MILP"
+)
 
 
 
 
-plot_MILP_IPB(MILP_UB_array, IPB_UB_array, 30)
 
-=#
+
+
+
+
