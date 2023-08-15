@@ -65,7 +65,7 @@ function extract_MILP_information(output_file::String)
     column_last = []
     for row in rows
         columns = split(row)
-        if !isempty(columns) && columns[1] == "H"
+        if !isempty(columns) && (columns[1] == "H" || columns[1] == "*")
             push!(Incumbent, columns[4])
             push!(column_last, columns[end])
         end
@@ -109,28 +109,107 @@ end
 
 
 
-IPB_log_file_path = "Output/IPB_inst_100_10_4.txt_RMP_RUNTIME_30_NCOLOUMNS_200_GAP_THRESHOLD_0.1_2023-07-12_11-25-35.txt"
+IPB_log_file_path = "Output/IPB_inst_200_10_4_RMP_RUNTIME_420_NCOLOUMNS_400_GAP_THRESHOLD_0.2_2023-07-23_00-54-20.txt"
 IPB_new_integer_solutions, IPB_total_time_passed = extract_info_from_log(IPB_log_file_path, ["New best integer solution:", "Total time passed for best solution:"])
+#prepend!(IPB_new_integer_solutions, 729828.0)
+#prepend!(IPB_total_time_passed, 44.79885697364807)
 
-MILP_log_file_path = "Output/MILP_inst_100_10_4.txt_2023-07-12_11-44-18.txt"
+
+IPB_log_file_path_2 = "Output/IPB_inst_200_10_4_RMP_RUNTIME_420_NCOLOUMNS_400_GAP_THRESHOLD_0.2_2023-07-22_22-52-11.txt"
+IPB_new_integer_solutions_2, IPB_total_time_passed_2 = extract_info_from_log(IPB_log_file_path_2, ["New best integer solution:", "Total time passed for best solution:"])
+#prepend!(IPB_new_integer_solutions_2, 729828.0)
+#prepend!(IPB_total_time_passed_2, 44.79885697364807)
+
+
+IPB_log_file_path_3 = "Output/IPB_inst_200_10_4_RMP_RUNTIME_300_NCOLOUMNS_400_GAP_THRESHOLD_0.2_2023-07-22_21-48-41.txt"
+IPB_new_integer_solutions_3, IPB_total_time_passed_3 = extract_info_from_log(IPB_log_file_path_3, ["New best integer solution:", "Total time passed for best solution:"])
+#prepend!(IPB_new_integer_solutions_3, 729828.0)
+#prepend!(IPB_total_time_passed_3, 44.79885697364807)
+
+
+IPB_log_file_path_4 = "Output/IPB_inst_200_10_4_RMP_RUNTIME_300_NCOLOUMNS_400_GAP_THRESHOLD_0.2_2023-07-22_23-54-23.txt"
+IPB_new_integer_solutions_4, IPB_total_time_passed_4 = extract_info_from_log(IPB_log_file_path_4, ["New best integer solution:", "Total time passed for best solution:"])
+#prepend!(IPB_new_integer_solutions_4, 729828.0)
+#prepend!(IPB_total_time_passed_4, 44.79885697364807)
+#=
+IPB_log_file_path_5 = "Output/IPB_inst_200_30_4_RMP_RUNTIME_300_NCOLOUMNS_25600_GAP_THRESHOLD_0.2_2023-07-20_10-56-19.txt"
+IPB_new_integer_solutions_5, IPB_total_time_passed_5 = extract_info_from_log(IPB_log_file_path_5, ["New best integer solution:", "Total time passed for best solution:"])
+#prepend!(IPB_new_integer_solutions_5, 729828.0)
+#prepend!(IPB_total_time_passed_5, 44.79885697364807)
+
+
+IPB_log_file_path_6 = "Output/IPB_inst_200_30_4_RMP_RUNTIME_300_NCOLOUMNS_1600_GAP_THRESHOLD_0.2_2023-07-20_13-18-11.txt"
+IPB_new_integer_solutions_6, IPB_total_time_passed_6 = extract_info_from_log(IPB_log_file_path_6, ["New best integer solution:", "Total time passed for best solution:"])
+prepend!(IPB_new_integer_solutions_6, 689164.0000)
+prepend!(IPB_total_time_passed_6, 16+71.40541505813599)
+
+IPB_log_file_path_7 = "Output/IPB_inst_200_10_4.txt_RMP_RUNTIME_300_NCOLOUMNS_3200_GAP_THRESHOLD_0.1_2023-07-17_12-43-09.txt"
+IPB_new_integer_solutions_7, IPB_total_time_passed_7 = extract_info_from_log(IPB_log_file_path_7, ["New best integer solution:", "Total time passed for best solution:"])
+prepend!(IPB_new_integer_solutions_7, 729828.0)
+prepend!(IPB_total_time_passed_7, 44.79885697364807)
+
+IPB_log_file_path_8 = "Output/IPB_inst_200_10_4.txt_RMP_RUNTIME_300_NCOLOUMNS_6400_GAP_THRESHOLD_0.1_2023-07-17_13-45-07.txt"
+IPB_new_integer_solutions_8, IPB_total_time_passed_8 = extract_info_from_log(IPB_log_file_path_8, ["New best integer solution:", "Total time passed for best solution:"])
+prepend!(IPB_new_integer_solutions_8, 729828.0)
+prepend!(IPB_total_time_passed_8, 44.79885697364807)
+
+=#
+
+MILP_log_file_path = "Output/MILP_inst_200_10_4_2023-07-18_13-16-12.txt"
 MILP_new_integer_solutions, MILP_total_time_passed =  extract_MILP_information(MILP_log_file_path)
+#prepend!(MILP_new_integer_solutions, 689662.000)
+#prepend!(MILP_total_time_passed, 175)
+MILP_total_time_passed = [x + 460.4130880832672 for x in MILP_total_time_passed]
 
 default(fontfamily = "Times New Roman")
 
 plot(IPB_total_time_passed, IPB_new_integer_solutions,
-     xlabel = "Total Time Passed",
-     ylabel = "New Integer Solutions",
-     title = "Integer Solutions over Time",
+     xlabel = "Time (s)",
+     ylabel = "Objectvie Function",
+     title = "inst_200_10_4 (Columns = 400, Gap = 0.2)",
      legend = true,
-     label="IPB",
+     label="IPB RMP 420s / 30 Iterations",
      xaxis = (formatter = x -> @sprintf("%.0f", x)),
      yaxis = (formatter = y -> @sprintf("%.0f", y))
 )
-
-plot!(MILP_total_time_passed, MILP_new_integer_solutions,
-      label="MILP"
+#=
+plot!(IPB_total_time_passed, IPB_new_integer_solutions,
+      label="IPB (10*100 Columns)"
+)
+=#
+plot!(IPB_total_time_passed_2, IPB_new_integer_solutions_2,
+      label="IPB RMP 420s / 20 Iterations",
 )
 
+plot!(IPB_total_time_passed_3, IPB_new_integer_solutions_3,
+      label="IPB RMP 300s / 30 Iterations",
+)
+
+plot!(IPB_total_time_passed_4, IPB_new_integer_solutions_4,
+      label="IPB RMP 300s / 20 Iterations",
+)
+#=
+plot!(IPB_total_time_passed_5, IPB_new_integer_solutions_5,
+      label="IPB (10*25600 Columns)"
+)
+
+plot!(IPB_total_time_passed_6, IPB_new_integer_solutions_6,
+      label="IPB (10*1600 Columns /\n300s in initial cols)"
+)
+
+plot!(IPB_total_time_passed_7, IPB_new_integer_solutions_7,
+      label="IPB (10*3200 Columns)"
+)
+
+plot!(IPB_total_time_passed_8, IPB_new_integer_solutions_8,
+      label="IPB (10*6400 Columns)"
+)
+
+=#
+plot!(MILP_total_time_passed, MILP_new_integer_solutions,
+      label="MILP",
+      line = (:dot, :black)
+)
 
 
 

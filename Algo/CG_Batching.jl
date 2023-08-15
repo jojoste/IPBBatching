@@ -71,9 +71,6 @@ function get_arc_cost(arc, N)
     n = size(N, 1)
     cikB = (n - i + 1) * p_B
 
-    # Store the computed cost in the dictionary revise
-    #c[arc] = cikB
-
     return cikB
 end
 
@@ -156,54 +153,63 @@ function get_B(r, b, l, sorted_N, n, gr_dict, B_dict)
 end =#
 
 
-
 function knapsack(r, b, l, sorted_N, n, GR_mem, B_mem)
     # check if value is already computed
+    if !ismissing(GR_mem[r+1, b+11, l+1])
+        #println("already computed")
+        return GR_mem[r+1, b+11, l+1], B_mem[r+1, b+11, l+1]
+    end
 
-    # @Joel, recheck this here (+1) -> limitation of Julia starting indice at 1
-    #if(b>0)
-        if !ismissing(GR_mem[r+1, b+11, l+1])
-            return GR_mem[r+1, b+11, l+1], B_mem[r+1, b+11, l+1]
-        end
-    #end 
-
-    computed_value = 0
+    computed_value = -Inf
     B_local = []
 
     # boundary conditions
-    if l > n - r + 1 || b < 0
+    # case 1: l > n - r + 1
+    if (l > (n - r + 1) || b < 0)
         computed_value = -Inf
+    # case 2: l = 0
     elseif l == 0
         computed_value = 0
-    elseif r == n
-        if sorted_N[r, 3] <= b && l == 1
+    # case 3: l == 1
+    elseif l == 1
+        #println("case 3")
+        if sorted_N[r, 3] <= b
             computed_value = sorted_N[r, 4]
             B_local = [sorted_N[r, 1]]
         else
-            computed_value = 0
+            # Adaption from paper 
+            # case 3.1: sorted_N[r, 3] > b
+            # -> job does not fit into the batch
+            # -> set computed_value to -Inf, because batch is infeasible
+            computed_value = -Inf
         end
     else
+        # recursion
         gr_with_yr_1, B_with_yr_1 = knapsack(r + 1, b - sorted_N[r, 3], l - 1, sorted_N, n, GR_mem, B_mem)
         gr_with_yr_1 += sorted_N[r, 4]
+
         gr_with_yr_0, B_with_yr_0 = knapsack(r + 1, b, l, sorted_N, n, GR_mem, B_mem)
 
-        if gr_with_yr_1 >= gr_with_yr_0
+        if gr_with_yr_1 > gr_with_yr_0
+            #println("case 4")
             computed_value = gr_with_yr_1
-            B_local = [sorted_N[r, 1]; B_with_yr_1]
+            # concatenate with the selected job index sorted_N[r, 1]
+            B_local = [B_with_yr_1; sorted_N[r, 1]]
         else
+            #println("case 5")
             computed_value = gr_with_yr_0
             B_local = B_with_yr_0
         end
+
     end
 
-    # store computed value and jobs
-    #if(b>0)
-        GR_mem[r+1, b+11, l+1] = computed_value
-        B_mem[r+1, b+11, l+1] = B_local
-    #end
+    GR_mem[r+1, b+11, l+1] = computed_value
+    B_mem[r+1, b+11, l+1] = B_local
+    #println("r: ", r, ", b: ", b, ", l: ", l, ", GR: ", computed_value, ", B: ", B_local)
 
     return computed_value, B_local
-end 
+end
+
 
 # create incidence column vector
 function create_a_dict(A, N)
@@ -344,8 +350,15 @@ function init_cols(N, b)
     for j in 1:n
         # Set B = [j]
         B = [sorted_N[j, 1]]
-        # added this line to make it work -> to revise
-        push!(H, (j, j + length(B), sort(copy(B))))
+        
+        
+        # adjustment to the paper
+        # recheck "-10"
+        # check if the size of job j is equal to the batch size b 
+        if sorted_N[j, 3] > b - 3
+            println("B" , B)
+            push!(H, (j, j+ length(B), sort((B))))
+        end
 
         for h in (j+1):n
             # If ∑j∈B s_j + s_h ≤ b
@@ -372,6 +385,7 @@ function new_cols(N, b, u, v)
     sorted_N = sortslices(s_v, dims=1, by=x -> x[2], rev=true)
     sorted_N = round.(Int, sorted_N)
     n = size(sorted_N, 1)
+
     # Set H = ∅ (Set of negative-reduced cost arcs)
     H = [Tuple{Int,Int,Vector{Int}}[] for _ in 1:n]
 
@@ -383,47 +397,58 @@ function new_cols(N, b, u, v)
     #B_dict = Dict{Tuple{Int,Int,Int}, Any}()
     
     #Threads.@threads for l in 1:n
+    #cardinality
     for l in 1:n
         # r should be equal to first sorted job
-            r = 1
-            done = false
+        r = 1
+        done = false
 
-            # Counter for iterations
-            iter_count = 0
+        # Counter for iterations
+        iter_count = 0
 
-            while !done 
-                gr_l_b, B_l_b  =  knapsack(r, b, l, sorted_N, n, GR_mem, B_mem )
-                #gr_l_b, B_l_b = knapsack_old(r, b, l, sorted_N, n, gr_dict, B_dict)
-                #position of nodes
-                Threads.@threads  for i in 1:(n-l+1)
-                #for i in 1:(n-l+1)
-                    k = i + l
-                    # Compute c_ikB = p_B(n - i + 1) - (u_i - u_k) - gr(b, l)
-                    #c_ikB = pB(B_l_b, sorted_N) * (n - i + 1) - (u[i] - u[k]) - gr_l_b
-                    c_ikB = get_arc_cost((i,k,B_l_b), sorted_N) - (u[i] - u[k]) - gr_l_b
+        while !done
+            gr_l_b, B_l_b = knapsack(r, b, l, sorted_N, n, GR_mem, B_mem)
+            
+            #position of arc
+            #Threads.@threads  for i in 1:(n-l+1)
+            for i in 1:(n-l+1)
+                k = i + l
+                # Compute c_ikB = p_B(n - i + 1) - (u_i - u_k) - gr(b, l)
+                #c_ikB = pB(B_l_b, sorted_N) * (n - i + 1) - (u[i] - u[k]) - gr_l_b
+                c_ikB = get_arc_cost((i, k, B_l_b), sorted_N) - (u[i] - u[k]) - gr_l_b
 
-                    if c_ikB < -0.001
-                        # Set H := H ∪ {(i, k, B)}
-                        # This was added -> need to revise
-                        if (k - i) == length(B_l_b)
-                            #print("adding arc: ", (i, k, copy(B_l_b)), " \t  $c_ikB")
-                            push!(H[l], (i, k, sort(B_l_b)))
-                        end
+                if c_ikB < -0.001
+                    # Set H := H ∪ {(i, k, B)}
+                    # This was added -> need to revise
+                    if (k - i) == length(B_l_b)
+                        #println("adding arc: ", (i, k, copy(B_l_b)), " \t  $c_ikB")
+                        push!(H[l], (i, k, sort(B_l_b)))
+                    else
+                        #println("Something went wrong!")
+                        #println("i: ", i, ", k: ", k, ", B: ", B_l_b)
                     end
                 end
+            end
 
-                # Set r := min{j : p_j < p_r}
-                r_values = [j for j in 1:n if sorted_N[j, 2] < sorted_N[r, 2]]
-                
-                if !isempty(r_values) 
-                    r = minimum([Int(x) for x in r_values])
-                else
-                    done = true
-                end 
+            # Set r := min{j : p_j < p_r}
+            
+            # save the processing time of job r
+            p_r = sorted_N[r, 2]
+
+            # find the indexes of jobs with smaller processing times
+            r_values = [j for j in 1:n if sorted_N[j, 2] < p_r]
+
+            if !isempty(r_values)
+                # Find the index with the smallest processing time smaller than r
+                min_index = argmin([sorted_N[x, 2] for x in r_values])
+                r = r_values[min_index]
+            else
+                done = true
             end
         end
+    end
     H_flat = vcat(H...)
-    return H_flat 
+    return H_flat
 end
 
 
@@ -530,6 +555,16 @@ function solve_optimal_partitioning_problem(A, c, relaxation, N, debugging)
         #    println("Arc: ", arc, ", Reduced Cost: ", reduced_cost(x[arc]))
         #end
 
+        #print all entries in flow conservation constraints
+        for node in 1:n+1
+            println("Flow conservation constraint for node $node: ", flow_conservation_constraints[node], "\n")
+        end
+
+        #print all entries in partitioning partitioning_constraints
+        for j in 1:n
+            println("Partitioning constraint for job $j: ", partitioning_constraints[j], "\n")
+        end
+
     else
         println("========================================")
         println("Objective Value: ", objective_value(model))
@@ -549,7 +584,16 @@ end
 
 # Algo 3: price and branch procedure
 
-function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false)
+function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false, dataString::String = "instance")
+    start_time = time()
+    timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
+
+    parts = split(dataString, "/")
+    dataString = parts[end]
+    dataString = replace(dataString, ".txt" => "")
+    output_filename = "Output/CG_$(dataString)_$(timestamp).txt"
+    output_file = open(output_filename, "w")
+    write(output_file, "CG for instance: $dataString\n\n")
     # Step 1: A′ ← InitCols(N , b)
     CG_LB = Inf
     CG_UB = Inf
@@ -558,15 +602,23 @@ function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false)
     start_time = time()
     CG_LB_array = []
 
+    start_time_init_cols = time()
     A_prime = init_cols(N, b)
+    length_A_prime = length(A_prime)
+    write(output_file, "Columns: $length_A_prime\n")
+    write(output_file, "Time for initial columns: $(time() - start_time_init_cols)\n")
+
+
     c = compute_cikB(A_prime, N)
     x, flow_conservation_constraints, partitioning_constraints, u, v, obj, myModel = solve_optimal_partitioning_problem(A_prime, c, true, N, debugging)
+    write(output_file, "Objective: $obj\n\n\n")
     elapsed_time = 0
     push!(CG_LB_array, (obj, elapsed_time))
     a = create_a_dict(A_prime, N)
     n = size(N, 1)
     # Step 2: G(V , A′) ← restricted master problem
     #G = solve_optimal_partitioning_problem(A_prime, c, relaxation, N, debugging)
+    close(output_file)
 
     while true
         # Step 4: z ← continuous optimum of G(V , A′)
@@ -622,26 +674,31 @@ function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false)
         optimize!(myModel)
         # save CG_LB in array
         elapsed_time = time() - start_time
+        output_file = open(output_filename, "a")
+        length_A_prime = length(A_prime)
+        write(output_file, "Columns: $length_A_prime\n")
+        write(output_file, "Time: $(time() - start_time)\n")
+        write(output_file, "Objective: $(objective_value(myModel))\n\n\n")
+        close(output_file)
         push!(CG_LB_array, (objective_value(myModel), elapsed_time))
-
-        #SparseArrays.sparse(hcat(x...))
 
         limit += 1
     end
-
     return CG_LB, CG_UB, CG_LB_array, x, c
 end
 
 
 ##### DEBGUGGING AREA #####
 
-#first_row, remaining_data = read_data("Data/Instances_txt/inst_20_50_1.txt")
-#N = remaining_data
+#=data_string = "Data/Instances_txt/inst_100_30_4.txt"
+first_row, remaining_data = read_data(data_string)
+N = remaining_data
 
-#CG_LB, CG_UB, CG_LB_array, x, c = price_and_branch(N, 50, false)
+CG_LB, CG_UB, CG_LB_array, x, c = price_and_branch(N, 30, false, false,  data_string)
 
+
+=#
 #length(x)
-
 
 
 
