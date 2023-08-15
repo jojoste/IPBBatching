@@ -11,6 +11,7 @@ include("CG_Batching.jl")
 
 
 
+
 function generate_JSON()
 
     x = missing
@@ -38,12 +39,14 @@ function generate_JSON()
         fileNameInstance = replace(fileNameInstance, ".txt" => "")
         n, b = first_row[1], first_row[2]
         println("n = ", n, " b = ", b)
-        CG_LB, CG_UB, CG_LB_array, x, c = price_and_branch(N, b, false)
+        CG_LB, CG_UB, CG_LB_array, x, c = price_and_branch(N, b, false, false, fileNameInstance)
         keysX = collect(keys(x))
 
         outputFileName = joinpath(directoryJSON, basename(fileNameInstance) * ".json")
 
         lengthx = length(keysX)
+
+        keysX = sort(keysX)
 
         println("Writing $lengthx generated columns to $outputFileName")
 

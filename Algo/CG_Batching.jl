@@ -3,6 +3,7 @@ using JuMP
 using Gurobi
 using Plots
 using Dates
+using Distributed
 
 #### HELPER FUNCTIONS #####
 
@@ -74,89 +75,11 @@ function get_arc_cost(arc, N)
     return cikB
 end
 
-#= 
-# Knapsack problem functions (for the column generation)
-function gr(r, b, l, sorted_N, n, gr_dict)
-    # check if value is already computed
-    if haskey(gr_dict, (r, b, l))
-        computed_value =  gr_dict[(r, b, l)]
-    end
 
-    # boundary conditions
-    if l > n - r + 1 || b < 0
-        computed_value =  -Inf
-    elseif l == 0
-        computed_value =  0
-    elseif r == n
-        computed_value =  (sorted_N[r, 3] <= b && l == 1) ? sorted_N[r, 4] : 0
-        # recursion
-    else
-        gr_with_yr_1 = gr(r + 1, b - sorted_N[r, 3], l - 1, sorted_N, n, gr_dict) + sorted_N[r, 4]
-        gr_with_yr_0 = gr(r + 1, b, l, sorted_N, n, gr_dict)
-        computed_value =  max(gr_with_yr_1, gr_with_yr_0)
-    end
-    # store computed value
-    gr_dict[(r, b, l)] = computed_value
-    return computed_value
-end
-
-#=
-function get_B(r, b, l, sorted_N, n)
-    #r= Int(r)
-
-    #s = sorted_N[r, 3]
-    #v = sorted_N[r, 4]
-
-    if l == 0 || b < 0
-        return []
-    elseif r == n
-        return (sorted_N[r, 3] <= b && l == 1) ? [sorted_N[r, 1]] : []
-    else
-        gr_with_yr_1 = gr(r + 1, b - sorted_N[r, 3], l - 1, sorted_N, n) + sorted_N[r, 4]
-        gr_with_yr_0 = gr(r + 1, b, l, sorted_N, n)
-
-        if gr_with_yr_1 >= gr_with_yr_0
-            return [Int(sorted_N[r, 1]); get_B(r + 1, b - sorted_N[r, 3], l - 1, sorted_N, n)]
-        else
-            return get_B(r + 1, b, l, sorted_N, n)
-        end
-    end
-end
-=#
-
-function get_B(r, b, l, sorted_N, n, gr_dict, B_dict)
-    # check if value is already computed
-    if haskey(B_dict, (r, b, l))
-        computed_value =  B_dict[(r, b, l)]
-    end
-
-    if l > n - r + 1 || b < 0
-        computed_value =  []
-    elseif l == 0
-        computed_value =  []
-    elseif r == n
-        computed_value =  (sorted_N[r, 3] <= b && l == 1) ? [sorted_N[r, 1]] : []
-    else
-        gr_with_yr_1 = gr(r + 1, b - sorted_N[r, 3], l - 1, sorted_N, n, gr_dict) + sorted_N[r, 4]
-        gr_with_yr_0 = gr(r + 1, b, l, sorted_N, n, gr_dict)
-
-        if gr_with_yr_1 >= gr_with_yr_0
-            # The optimal set of jobs when the current job is included consists of the current job and the optimal set of jobs for the remaining jobs, total size, and cardinality.
-            computed_value =  [Int(sorted_N[r, 1]); get_B(r + 1, b - sorted_N[r, 3], l - 1, sorted_N, n,gr_dict, B_dict)]
-        else
-            computed_value =  get_B(r + 1, b, l, sorted_N, n, gr_dict, B_dict)
-        end
-    end
-    # store computed value
-    B_dict[(r, b, l)] = computed_value
-    return computed_value
-end =#
-
-
+# Knapsack
 function knapsack(r, b, l, sorted_N, n, GR_mem, B_mem)
     # check if value is already computed
     if !ismissing(GR_mem[r+1, b+11, l+1])
-        #println("already computed")
         return GR_mem[r+1, b+11, l+1], B_mem[r+1, b+11, l+1]
     end
 
@@ -172,7 +95,6 @@ function knapsack(r, b, l, sorted_N, n, GR_mem, B_mem)
         computed_value = 0
     # case 3: l == 1
     elseif l == 1
-        #println("case 3")
         if sorted_N[r, 3] <= b
             computed_value = sorted_N[r, 4]
             B_local = [sorted_N[r, 1]]
@@ -191,7 +113,6 @@ function knapsack(r, b, l, sorted_N, n, GR_mem, B_mem)
         gr_with_yr_0, B_with_yr_0 = knapsack(r + 1, b, l, sorted_N, n, GR_mem, B_mem)
 
         if gr_with_yr_1 > gr_with_yr_0
-            #println("case 4")
             computed_value = gr_with_yr_1
             # concatenate with the selected job index sorted_N[r, 1]
             B_local = [B_with_yr_1; sorted_N[r, 1]]
@@ -203,6 +124,8 @@ function knapsack(r, b, l, sorted_N, n, GR_mem, B_mem)
 
     end
 
+
+    B_local = sort(B_local)
     GR_mem[r+1, b+11, l+1] = computed_value
     B_mem[r+1, b+11, l+1] = B_local
     #println("r: ", r, ", b: ", b, ", l: ", l, ", GR: ", computed_value, ", B: ", B_local)
@@ -292,7 +215,8 @@ function update_model(model, A_new, A, x, N, a, c, flow_conservation_constraints
     # Update model with new columns
     for arc in A_new
         # Check if arc is already in A
-        if !haskey(x, A)
+        # removed for computational reasons
+        #if !haskey(x, A)
             # Add new arc to A
             push!(A, arc)
 
@@ -315,12 +239,12 @@ function update_model(model, A_new, A, x, N, a, c, flow_conservation_constraints
                 set_normalized_coefficient(partitioning_constraints[element], x[arc], 1)
             end
 
-        end
+        #end
     end
     return model, A, x, a, c, flow_conservation_constraints, partitioning_constraints
 end
 
-# write a function that returns me the duals of the constraints
+# Return true if model has duals, false otherwise
 function get_duals(model, n, flow_conservation_constraints, partitioning_constraints)
     # Check if model has duals
     if has_duals(model)
@@ -353,11 +277,9 @@ function init_cols(N, b)
         
         
         # adjustment to the paper
-        # recheck "-10"
         # check if the size of job j is equal to the batch size b 
-        if sorted_N[j, 3] > b - 3
-            println("B" , B)
-            push!(H, (j, j+ length(B), sort((B))))
+        if sorted_N[j, 3] > b - 7 && b == 10
+            push!(H, (j, j+ length(B), sort(B)))
         end
 
         for h in (j+1):n
@@ -377,6 +299,19 @@ function init_cols(N, b)
 end
 
 
+function init_cols_reduced(N, b)
+    sorted_N = sortslices(N, dims=1, by=x -> x[2])
+    n = size(N, 1)
+
+    H = Tuple{Int,Int,Vector{Int}}[]
+
+    for j in 1:n 
+        push!(H, (j, j+1, [sorted_N[j, 1]]))
+    end 
+    return H
+end
+
+
 
 # Algorithm 1:  pricing problem
 function new_cols(N, b, u, v)
@@ -390,14 +325,11 @@ function new_cols(N, b, u, v)
     H = [Tuple{Int,Int,Vector{Int}}[] for _ in 1:n]
 
     # Arrays for gr and B
-    # For now some values, come back and change
     GR_mem = Array{Any}(missing,n+1,b+11,n+1)
     B_mem = Array{Any}(missing, n+1, b+11, n+1)
-    #gr_dict = Dict{Tuple{Int,Int,Int}, Float64}()
-    #B_dict = Dict{Tuple{Int,Int,Int}, Any}()
     
+        #cardinality
     #Threads.@threads for l in 1:n
-    #cardinality
     for l in 1:n
         # r should be equal to first sorted job
         r = 1
@@ -414,34 +346,28 @@ function new_cols(N, b, u, v)
             for i in 1:(n-l+1)
                 k = i + l
                 # Compute c_ikB = p_B(n - i + 1) - (u_i - u_k) - gr(b, l)
-                #c_ikB = pB(B_l_b, sorted_N) * (n - i + 1) - (u[i] - u[k]) - gr_l_b
                 c_ikB = get_arc_cost((i, k, B_l_b), sorted_N) - (u[i] - u[k]) - gr_l_b
 
                 if c_ikB < -0.001
                     # Set H := H ∪ {(i, k, B)}
-                    # This was added -> need to revise
+                    # Check
                     if (k - i) == length(B_l_b)
                         #println("adding arc: ", (i, k, copy(B_l_b)), " \t  $c_ikB")
                         push!(H[l], (i, k, sort(B_l_b)))
                     else
-                        #println("Something went wrong!")
-                        #println("i: ", i, ", k: ", k, ", B: ", B_l_b)
+                        println("Something went wrong!")
+                        println("i: ", i, ", k: ", k, ", B: ", B_l_b)
                     end
                 end
             end
 
             # Set r := min{j : p_j < p_r}
-            
-            # save the processing time of job r
-            p_r = sorted_N[r, 2]
-
-            # find the indexes of jobs with smaller processing times
-            r_values = [j for j in 1:n if sorted_N[j, 2] < p_r]
+            r_values = [j for j in 1:n if sorted_N[j, 2] < sorted_N[r, 2]]
+            #println("r_values: ", r_values)
 
             if !isempty(r_values)
-                # Find the index with the smallest processing time smaller than r
-                min_index = argmin([sorted_N[x, 2] for x in r_values])
-                r = r_values[min_index]
+                r = minimum([Int(x) for x in r_values])
+                #println("r: ", r)
             else
                 done = true
             end
@@ -588,6 +514,7 @@ function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false, dataSt
     start_time = time()
     timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
 
+    CG_counter = 0
     parts = split(dataString, "/")
     dataString = parts[end]
     dataString = replace(dataString, ".txt" => "")
@@ -622,6 +549,7 @@ function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false, dataSt
 
     while true
         # Step 4: z ← continuous optimum of G(V , A′)
+        CG_counter += 1
 
 
         z = objective_value(myModel)
@@ -631,14 +559,17 @@ function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false, dataSt
         #u, v = optimal_multipliers(G)
 
         # Step 6: H ← NewCols(N , b, u, v)
+        start_time_new_cols = time()
         H = new_cols(N, b, u, v)
+        #println("Elapsed time for new cols: ", time() - start_time_new_cols)
+        println("Number of new cols: ", length(H))
 
 
-        # maybe we should check here whether there are actually new columns in H or not
         # remove all arcs in H that are already in A_prime
         H = filter(x -> !(x in A_prime), H)
 
-
+        
+        
         # Step 7: if |H |=0 then
         if length(H) == 0 #|| limit > 40 #|| elapsed_time < 500
             # Step 8: CG − LB ← z — continuous optimum, lower bound
@@ -669,14 +600,19 @@ function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false, dataSt
 
         # Step 12: A′ ← A′ ∪ H
         #A_prime = unique(vcat(A_prime, H))
+        start_time_update_model = time()
+        println("Adding ", length(H), " new columns to model!")
         myModel, A_prime, x, a, c, flow_conservation_constraints, partitioning_constraints = update_model(myModel, H, A_prime, x, N, a, c, flow_conservation_constraints, partitioning_constraints)
+        println("Elapsed time (updating model): ", time() - start_time_update_model)
         set_optimizer_attribute(myModel, "Method", 2)
         optimize!(myModel)
         # save CG_LB in array
         elapsed_time = time() - start_time
         output_file = open(output_filename, "a")
         length_A_prime = length(A_prime)
-        write(output_file, "Columns: $length_A_prime\n")
+        length_x = length(x)
+        write(output_file, "\n\n-------------------\nIteration: $CG_counter\n")
+        write(output_file, "Columns: $length_x\n")
         write(output_file, "Time: $(time() - start_time)\n")
         write(output_file, "Objective: $(objective_value(myModel))\n\n\n")
         close(output_file)
@@ -688,68 +624,4 @@ function price_and_branch(N, b, debugging, solveNonRelaxed::Bool = false, dataSt
 end
 
 
-##### DEBGUGGING AREA #####
 
-#=data_string = "Data/Instances_txt/inst_100_30_4.txt"
-first_row, remaining_data = read_data(data_string)
-N = remaining_data
-
-CG_LB, CG_UB, CG_LB_array, x, c = price_and_branch(N, 30, false, false,  data_string)
-
-
-=#
-#length(x)
-
-
-
-
-#CG("Data/Instances_txt/inst_40_50_3.txt", 10, false)
-
-
-
-####### Uncommment HERE ########
-
-#=
-
-CG_LB, CG_UB, A_prime, partitioning_constraints, CG_LB_array = price_and_branch(N, 50, false)
-
-
-
-CG_LB, CG_UB
-
-(CG_UB / CG_LB - 1) * 100
-
-
-plot_CG_LB(CG_LB_array) 
-
-=#
-
-#=
-
-
-A_prime = init_cols(N, 10)
-c = compute_cikB(A_prime, N)
-a = create_a_dict(A_prime, N)
-start_time = time()
-x, flow_conservation_constraints, partitioning_constraints, u, v, obj, myModel = solve_optimal_partitioning_problem(A_prime, c, true, N, false)
-elapsed_time = time() - start_time
-
-start_time = time()
-optimize!(myModel)
-elapsed_time = time() - start_time
-println("Elapsed time: ", elapsed_time)
-
-# !!! First run the new cols Alg
-H = new_cols(N, 10, u, v)
-# remove all arcs in H that are already in A_prime
-H = filter(x -> !(x in A_prime), H)
-println( length(H), " new columns found and added to model!")
-start_time = time()
-myModel, A_prime, x, a, c, flow_conservation_constraints, partitioning_constraints = update_model(myModel, H, A_prime, x, N, a, c, flow_conservation_constraints, partitioning_constraints)
-elapsed_time = time() - start_time
-println("Elapsed time (updating model): ", elapsed_time)
-start_time = time()
-optimize!(myModel)
-elapsed_time = time() - start_time
-println("Elapsed time (solving): ", elapsed_time)
-=#

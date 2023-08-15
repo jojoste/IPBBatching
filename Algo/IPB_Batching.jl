@@ -34,12 +34,20 @@ function configure_gurobi_logging(log_filename::AbstractString, model::Model)
     set_optimizer_attribute(model, "LogFile", log_filename)
 end
 
+# For relative variation of columns
+variations_relative_columns = Dict(
+    "4a" => [40, 70, 100, 100, 100, 100, 100, 100, 100, 100],
+    "4b" => [30, 50, 70, 90, 100, 100, 100, 100, 100, 100],
+    "4c" => [70, 55, 40, 25, 25, 25, 25, 25, 25, 25]
+)
 
 
 
 # IPB Algorithm
-function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::Float64, NCOLOUMNS::Int64, IPB_RUNTIME::Int64, CG_MAX_ITERATION::Int64, PRICING_PER_NODE::Bool, PRICING_PER_NODE_COLUMNS::Int64)
+function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::Float64, NCOLOUMNS::Int64, IPB_RUNTIME::Int64, CG_MAX_ITERATION::Int64, PRICING_PER_NODE::Bool, PRICING_PER_NODE_COLUMNS::Int64, START_SOLUTION_IPB::Int64=1)
 
+
+    # Stats
     Counter_IPB = 0
     Counter_CG = 0
     Counter_earlyCGBreak = 0
@@ -59,6 +67,16 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
     Total_Time_Integer_Solution = 0
     Total_Time_CG = 0
 
+    # Relative Columns
+    if(NCOLOUMNS == 41 )
+        NCOLOUMNS = "4a"
+    elseif(NCOLOUMNS == 42)
+        NCOLOUMNS = "4b"
+    elseif(NCOLOUMNS == 43)
+        NCOLOUMNS = "4c"
+    end
+    NCOLOUMNS_intermediate = missing
+
 
 
     CG_iteration = 0
@@ -69,7 +87,7 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
     instance_name = parts[end]
     instance_name = replace(instance_name, ".txt" => "")
     timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
-    output_filename = "Output/IPB_$(instance_name)_RMP_RUNTIME_$(RMP_RUNTIME)_NCOLOUMNS_$(NCOLOUMNS)_GAP_THRESHOLD_$(GAP_THRESHOLD)_$(timestamp).txt"
+    output_filename = "Output/IPB_$(instance_name)_RMP_RUNTIME_$(RMP_RUNTIME)_NCOLOUMNS_$(NCOLOUMNS)_GAP_THRESHOLD_$(GAP_THRESHOLD)_STARTSOLUTION_$(START_SOLUTION_IPB)_$(timestamp).txt"
     output_file = open(output_filename, "w")
     write(output_file, "$fileName start IPB\n")
     
@@ -84,9 +102,13 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
         end
     end
 
+    
+
     write(output_file, "RMP_RUNTIME: $RMP_RUNTIME\n")
     write(output_file, "GAP_THRESHOLD: $GAP_THRESHOLD\n")
     write(output_file, "NCOLOUMNS: $NCOLOUMNS\n\n")
+    write(output_file, "IPB_RUNTIME: $IPB_RUNTIME\n")
+    write(output_file," START_SOLUTION_IPB: $START_SOLUTION_IPB\n")
     
 
 
@@ -117,8 +139,16 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
         for (k, i, B) in data
             push!(A_prime_CG, (k, i, B))
         end
-        A_prime_RMP = init_cols(N, b)
-        #A_prime_RMP = copy(A_prime_CG)
+
+        # Start solution for RMP
+        if(START_SOLUTION_IPB == 1 || START_SOLUTION_IPB == 4)
+            # => start solution for RMP: 1 = init_cols, 2 = init_cols_reduced, 3 = full model
+            A_prime_RMP = init_cols(N, b)
+        elseif(START_SOLUTION_IPB == 2)
+            A_prime_RMP = init_cols_reduced(N,b)
+        elseif(START_SOLUTION_IPB == 3)
+            A_prime_RMP = copy(A_prime_CG)
+        end
         batchPool = copy(A_prime_CG)
     end
 
@@ -134,7 +164,6 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
     start_time = time()
     write(output_file, "\nInitialize RMP model\n")
     # Initialize model for RMP (used in IPB)
-    #x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, u_RMP, v_RMP, obj_RMP, model_RMP = solve_optimal_partitioning_problem(A_prime_RMP, c_prime_RMP, true, N, DEBUGGING)
     x_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP, model_RMP = create_model(A_prime_RMP, c_prime_RMP, N)
     SetUpTimeFirstRMP = time() - start_time
     write(output_file, "RMP model initialized in $(SetUpTimeFirstRMP) seconds\n")
@@ -158,17 +187,11 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
 
             CG_LB = objective_value(model_CG)
 
-            #for element in values(x)
-            #    set_binary(element)
-            #end
-            
             set_optimizer_attribute(model_CG, "Method", 2)
             optimize!(model_CG)
             if termination_status(model_CG) == MOI.OPTIMAL
                 CG_UB = objective_value(model_CG)
-                #x_optimal = sort(collect(keys(x)))[value.(x) .== 1]
                 println("Optimal solution found: $(CG_UB)")
-                #println("Optimal solution: $(x_optimal)")
             else 
                 println("No optimal solution found")
             end 
@@ -188,9 +211,7 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
     start_time_IPB = time()
     # Step 3: Solve Restricted Master problem
 
-    # callback function for IPB
-    # Edit callback function!! revise
-    # https://discourse.julialang.org/t/easier-solver-callback-for-jump-lj-gurobi/84889/2
+    # Callback function for IPB
     function callback_checkExit(cb_data, cb_where::Cint)
         if cb_where == GRB_CB_MIPNODE
             runtimeP = Ref{Cdouble}()
@@ -198,19 +219,23 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
             GRBcbget(cb_data, cb_where, GRB_CB_RUNTIME, runtimeP)
             GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_SOLCNT, nbSol)
                 
-        
+            # If incumbent solution is found after runtimeP > RMP_RUNTIME and nbSol > 0, terminate
             if runtimeP[] > RMP_RUNTIME && nbSol[] > 0
                 objbstP = Ref{Cdouble}()
                 objbndP = Ref{Cdouble}()
+                # Current best solution
                 GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBST, objbstP)
+                # Current best bound
                 GRBcbget(cb_data, cb_where, GRB_CB_MIPNODE_OBJBND, objbndP)
+                # Gap between current best solution and current best bound
                 gap = abs((objbstP[] - objbndP[]) / objbstP[])
+                # If current best solution is better than currentBest or gap < GAP_THRESHOLD, terminate
                 if (round(objbstP[]) < round(currentBest)) || (gap < GAP_THRESHOLD)
                     println("Terminate RMP")
                     GRBterminate(JuMP.backend(model_RMP).optimizer.model.inner)
                 end
-                # else if both conditions do not hold above
-                if runtimeP[] > RMP_RUNTIME*3
+                # Else if exceeds time limit, terminate
+                if time() - start_time_IPB > IPB_RUNTIME
                     println("Terminate RMP")
                     GRBterminate(JuMP.backend(model_RMP).optimizer.model.inner)
                 end
@@ -236,11 +261,12 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
         end 
     end
 
-    # To adapt
-    MOI.set(model_RMP, Gurobi.CallbackFunction(), callback_feasibleSolution)
-
-
-    #set_optimizer_attribute(model_RMP, "TimeLimit", RMP_RUNTIME)
+    
+    if(START_SOLUTION_IPB != 4)
+        MOI.set(model_RMP, Gurobi.CallbackFunction(), callback_feasibleSolution)
+    else
+        set_optimizer_attribute(model_RMP, "TimeLimit", 300)
+    end
 
     # Solve RMP with initial column pool
     for element in values(x_RMP)
@@ -283,7 +309,7 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
 
 
 
-    #while IPB_iteration < IPB_MAX_ITERATION
+    # While max runtime is not exceeded
     while time() - start_time_IPB < IPB_RUNTIME
         IPB_iteration += 1
         CG_iteration = 0
@@ -297,14 +323,12 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
         x_toAdd = missing
         while CG_iteration < CG_MAX_ITERATION
             Counter_CG = Counter_CG + 1
-            #optimize!(model_RMP)
             CG_iteration += 1
             CG_iteration_start_time = time()
 
             output_file = open(output_filename, "a") 
             write(output_file, "\nCG Iteration $CG_iteration\n")
 
-            # Double check this
 
             flow_conservation_constraints_RMP = sort(flow_conservation_constraints_RMP, by = x -> x[1])
             partitioning_constraints_RMP = sort(partitioning_constraints_RMP, by = x -> x[1])
@@ -327,29 +351,35 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
 
 
 
-            # empty price_dict and sorted_price_dict
+            # Empty price_dict and sorted_price_dict
             empty!(price_dict)
             empty!(sorted_price_dict)
             empty!(grouped_price_dict)
 
 
-            # for each column in the column pool, calculate the reduced cost (parallelized)
+            # For each column in the column pool, calculate the reduced cost (parallelized)
             start_time_pricing = time() 
-            Threads.@threads for element in batchPool
+            #Threads.@threads for element in batchPool -> does not work
+            for element in batchPool
                 price_dict[element] = get_reducedCost(element, N, u_RMP, v_RMP)
             end
             elapsed_time_pricing = time() - start_time_pricing
             Total_Time_Pricing = Total_Time_Pricing + elapsed_time_pricing
+            println("Pricing done in $(elapsed_time_pricing) seconds")
 
+            
+            
             if(!PRICING_PER_NODE)
                 # Sort price_dict by value ascending and only keep columns with negative reduced cost
                 sorted_price_dict = sort(collect(filter(x -> x[2] < 0.001, price_dict)), by = x -> x[2])
+                println("Sorted price dict, found $(length(sorted_price_dict)) columns with negative reduced cost")
                 if length(sorted_price_dict) == 0
                     println("No columns with negative reduced cost found")
                     Counter_earlyCGBreak = Counter_earlyCGBreak + 1
                     break
                 end
             else
+                # This does not return usable results
                 grouped_price_dict = Dict()
                 for (element, cost) in price_dict
                     (i, k, B) = element
@@ -373,34 +403,65 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
                 # Flatten the grouped_price_dict to have a list of all tuples
                 sorted_price_dict = [tup for (node, tuples) in grouped_price_dict for tup in tuples]
 
-                if isempty(sorted_price_dict)
+                if length(sorted_price_dict) == 0
                     println("No columns with negative reduced cost found")
                     break
                 end
             end 
 
-            # Step 5 Add columns
-            # extract NCOLOUMNS columns with highest reduced cost from price_dict
-            if NCOLOUMNS > length(sorted_price_dict)
-                NCOLOUMNS_intermediate = length(sorted_price_dict)
-            else
-                NCOLOUMNS_intermediate = NCOLOUMNS
-            end 
+            # Check if NCOLOUMNS is relative or absolute
+            if NCOLOUMNS != "4a" && NCOLOUMNS != "4b" && NCOLOUMNS != "4c"
+                # Step 5 Add columns
+                # extract NCOLOUMNS columns with the highest reduced cost from price_dict
+                if NCOLOUMNS > length(sorted_price_dict)
+                    NCOLOUMNS_intermediate = length(sorted_price_dict)
+                else
+                    NCOLOUMNS_intermediate = NCOLOUMNS
+                end
+            # If NCOLOUMNS is relative, then compute the amount of columns to add
+            elseif NCOLOUMNS == "4a" || NCOLOUMNS == "4b" || NCOLOUMNS == "4c"
+                if NCOLOUMNS == "4a"
+                    NCOLOUMNS_intermediate = variations_relative_columns["4a"][CG_iteration] / 100
+                elseif NCOLOUMNS == "4b"
+                    NCOLOUMNS_intermediate = variations_relative_columns["4b"][CG_iteration] / 100
+                elseif NCOLOUMNS == "4c"
+                    NCOLOUMNS_intermediate = variations_relative_columns["4c"][CG_iteration] / 100
+                end
+
+                println("NCOLOUMNS_intermediate: $NCOLOUMNS_intermediate")
+                println("length(sorted_price_dict): $(length(sorted_price_dict))")
+                Counter_earlyCGBreak = Counter_earlyCGBreak + 1
+                NCOLOUMNS_intermediate = Int(round(NCOLOUMNS_intermediate * length(sorted_price_dict)))
+                println("NCOLOUMNS_intermediate: $NCOLOUMNS_intermediate")
+                if NCOLOUMNS_intermediate == 0
+                    println("NCOLOUMNS_intermediate is 0")
+                end
+            end
+
             x_toAdd = sorted_price_dict[1:NCOLOUMNS_intermediate]
+                        
 
             x_toAdd = [x[1] for x in x_toAdd]
             x_toAdd = filter(x -> !(x in A_prime_RMP), x_toAdd)
 
             # Update model with new columns, solve RMP
+            println("Start updating model")
+            start_time_update_model = time()
             model_RMP, A_prime_RMP, x_RMP , A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP = update_model(model_RMP, x_toAdd, A_prime_RMP, x_RMP, N, A_prime_RMP, c_prime_RMP, flow_conservation_constraints_RMP, partitioning_constraints_RMP)
+            elapsed_time_update_model = time() - start_time_update_model
+            println("Model updated in $(elapsed_time_update_model) seconds")
+            
             optimize!(model_RMP)
+            
             Max_Columns_in_Model = max(Max_Columns_in_Model, length(A_prime_RMP))
+            
             if(objective_value(model_RMP)< LB_RMP_CURRENTBEST)
                 LB_RMP_CURRENTBEST = objective_value(model_RMP)
                 push!(LB_RMP_CURRENTBEST_Array, (LB_RMP_CURRENTBEST, time() - start_time))
             end
 
             elapsed_time_CG = time() - CG_iteration_start_time
+           
             println("\n\nAdded $(length(x_toAdd)) columns to the RMP\n")
             write(output_file, "Obj Relaxed: $(objective_value(model_RMP))\n")
             write(output_file, "Columns added to RMP: $(length(x_toAdd)) in $elapsed_time_CG\n\n")
@@ -413,16 +474,26 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
                 close(output_file)
                 Counter_earlyCGBreak = Counter_earlyCGBreak + 1
                 break
+
             end
             
             if(CG_iteration == CG_MAX_ITERATION)
                 println("CG reached maximum number of iterations")
             end
+
+            # Check if no more columns (or only very few) are added to RMP, then break
+            if(CG_iteration == 1 && length(x_toAdd) < 50)
+                println("No columns with negative reduced cost found, break, IPB done")
+                output_file = open(output_filename, "a")
+                write(output_file, "No columns with negative reduced cost found, IPB done\n")
+                close(output_file)
+                break
+            end
         end 
 
-        #check if no more columns are added to RMP, then break
+        # Check if no more columns are added to RMP, then break
         
-        if(CG_iteration == 1 && length(x_toAdd) == 0)
+        if(CG_iteration == 1 && length(x_toAdd) < 0.01*NCOLOUMNS_intermediate)
             println("No columns with negative reduced cost found, break, IPB done")
             output_file = open(output_filename, "a")
             write(output_file, "No columns with negative reduced cost found, IPB done\n")
@@ -479,7 +550,7 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
             write(output_file, "\n\nNew best integer solution found!\n")
             write(output_file, "New best integer solution: $(obj)\n")
             write(output_file, "Amount columns in solution: $length_x_feasible\n") 
-            write(output_file, "Amount columns in batch pool: $length_x\n")
+            write(output_file, "Amount columns in model: $length_x\n")
             write(output_file, "Total time passed for best solution: $current_total_time\n")
             Max_Columns_in_Solution = max(Max_Columns_in_Solution, length_x_feasible)
             Min_Columns_in_Solution = min(Min_Columns_in_Solution, length_x_feasible)
@@ -500,7 +571,7 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
         end
     end
 
-    # Finally, report important statistics:
+    # Report important statistics:
     output_file = open(output_filename, "a")
 
     write(output_file, "\n=========================\n\nOUTPUT STATISTICS\n")
@@ -547,31 +618,7 @@ function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME::Int64, GAP_THRESHOLD::F
 
 
 
-
 end 
-
-##### DEBGUGGING AREA #####
-
-#=
-# ADAPT THE FOLLOWING CONSTANTS TO YOUR NEEDS
-RMP_RUNTIME = 300
-GAP_THRESHOLD = 0.1
-CG_MAX_ITERATION = 10
-NCOLOUMNS = 6400
-
-# Chose the 5 most violated columns per node
-PRICING_PER_NODE = false
-PRICING_PER_NODE_COLUMNS = 5
-
-# Maximum number of iterations for IPB (removed later)
-IPB_RUNTIME = 3000
-
-=#
-
-#function IPB(fileName::String, no_CG::Bool, RMP_RUNTIME, GAP_THRESHOLD, NCOLOUMNS, IPB_RUNTIME, CG_MAX_ITERATION, PRICING_PER_NODE, PRICING_PER_NODE_COLUMNS)#
-
-
-#IPB("Data/Instances_txt/inst_100_10_4.txt", true, 20, 0.5, 200, 60, 10, false, 0)
 
 
 
