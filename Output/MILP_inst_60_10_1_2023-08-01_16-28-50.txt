@@ -1,0 +1,65 @@
+Instance: Data/Instances_txt/inst_60_10_1.txt
+SetUpTime: 4.402665138244629
+
+Gurobi 10.0.1 (mac64[x86]) logging started Di  1 Aug 16:29:19 2023
+
+Set parameter LogFile to value "Output/MILP_inst_60_10_1_2023-08-01_16-28-50.txt"
+Set parameter TimeLimit to value 2700
+
+Gurobi 10.0.1 (mac64[x86]) logging started Di  1 Aug 16:29:19 2023
+
+Set parameter LogFile to value "Output/MILP_inst_60_10_1_2023-08-01_16-28-50.txt"
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 121 rows, 8602 columns and 41091 nonzeros
+Model fingerprint: 0xc4f0d536
+Variable types: 0 continuous, 8602 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+00, 6e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 3 rows and 138 columns
+Presolve time: 0.07s
+Presolved: 118 rows, 8464 columns, 40153 nonzeros
+Variable types: 0 continuous, 8464 integer (8464 binary)
+Found heuristic solution: objective 45506.000000
+
+Root relaxation: objective 3.394958e+04, 1354 iterations, 0.13 seconds (0.16 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 33949.5833    0   47 45506.0000 33949.5833  25.4%     -    0s
+H    0     0                    44119.000000 33949.5833  23.0%     -    0s
+H    0     0                    37439.000000 33949.5833  9.32%     -    0s
+     0     0 34098.3333    0   61 37439.0000 34098.3333  8.92%     -    0s
+H    0     0                    34104.000000 34098.3333  0.02%     -    0s
+
+Cutting planes:
+  Clique: 4
+  Zero half: 14
+  RLT: 17
+
+Explored 1 nodes (1474 simplex iterations) in 0.47 seconds (0.40 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 4: 34104 37439 44119 45506 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 3.410400000000e+04, best bound 3.410400000000e+04, gap 0.0000%
+
+User-callback calls 490, time in user-callback 0.00 sec
+
+=========================
+
+OUTPUT STATISTICS
+Relaxed: false
+Time since start: 5.042457103729248
+SetUpTime: 4.402665138244629
+Objective value: 34104.0
+Number of variables: 8602
+Solving time: 0.6344830989837646

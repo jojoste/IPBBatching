@@ -1,0 +1,62 @@
+Instance: Data/Instances_txt/inst_60_10_3.txt
+SetUpTime: 1.617995023727417
+
+Gurobi 10.0.1 (mac64[x86]) logging started Di  1 Aug 16:29:30 2023
+
+Set parameter LogFile to value "Output/MILP_inst_60_10_3_2023-08-01_16-28-50.txt"
+Set parameter TimeLimit to value 2700
+
+Gurobi 10.0.1 (mac64[x86]) logging started Di  1 Aug 16:29:30 2023
+
+Set parameter LogFile to value "Output/MILP_inst_60_10_3_2023-08-01_16-28-50.txt"
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 121 rows, 4112 columns and 15838 nonzeros
+Model fingerprint: 0x6501fe23
+Variable types: 0 continuous, 4112 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [8e+00, 5e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 4 rows and 4 columns
+Presolve time: 0.02s
+Presolved: 117 rows, 4108 columns, 15710 nonzeros
+Variable types: 0 continuous, 4108 integer (4108 binary)
+Found heuristic solution: objective 50369.000000
+
+Root relaxation: objective 4.263967e+04, 1012 iterations, 0.04 seconds (0.04 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 42639.6667    0   11 50369.0000 42639.6667  15.3%     -    0s
+H    0     0                    42837.000000 42639.6667  0.46%     -    0s
+H    0     0                    42648.000000 42639.6667  0.02%     -    0s
+
+Cutting planes:
+  Zero half: 2
+  RLT: 5
+
+Explored 1 nodes (1020 simplex iterations) in 0.10 seconds (0.09 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 3: 42648 42837 50369 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 4.264800000000e+04, best bound 4.264800000000e+04, gap 0.0000%
+
+User-callback calls 207, time in user-callback 0.00 sec
+
+=========================
+
+OUTPUT STATISTICS
+Relaxed: false
+Time since start: 1.7989060878753662
+SetUpTime: 1.617995023727417
+Objective value: 42648.0
+Number of variables: 4112
+Solving time: 0.17749404907226562

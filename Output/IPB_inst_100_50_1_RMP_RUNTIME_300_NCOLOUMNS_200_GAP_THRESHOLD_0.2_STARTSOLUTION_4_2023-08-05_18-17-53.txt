@@ -1,0 +1,1568 @@
+Data/Instances_txt/inst_100_50_1.txt start IPB
+RMP_RUNTIME: 300
+GAP_THRESHOLD: 0.2
+NCOLOUMNS: 200
+
+IPB_RUNTIME: 2700
+ START_SOLUTION_IPB: 4
+
+Start IPB without CG
+
+Initialize RMP model
+RMP model initialized in 12.31977915763855 seconds
+
+Start CG
+CG_AMOUNT: 221775 at iteration 0
+
+Start IPB
+
+Gurobi 10.0.1 (mac64[x86]) logging started Sa  5 Aug 18:18:12 2023
+
+Set parameter LogFile to value "Output/IPB_inst_100_50_1_RMP_RUNTIME_300_NCOLOUMNS_200_GAP_THRESHOLD_0.2_STARTSOLUTION_4_2023-08-05_18-17-53.txt"
+
+Gurobi 10.0.1 (mac64[x86]) logging started Sa  5 Aug 18:18:12 2023
+
+Set parameter LogFile to value "Output/IPB_inst_100_50_1_RMP_RUNTIME_300_NCOLOUMNS_200_GAP_THRESHOLD_0.2_STARTSOLUTION_4_2023-08-05_18-17-53.txt"
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 86849 columns and 720628 nonzeros
+Model fingerprint: 0x0d82229f
+Variable types: 0 continuous, 86849 integer (86849 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+00, 1e+04]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 4 rows and 3686 columns
+Presolve time: 1.15s
+Presolved: 197 rows, 83163 columns, 687722 nonzeros
+Variable types: 0 continuous, 83163 integer (83163 binary)
+
+Starting sifting (using dual simplex for sub-problems)...
+
+    Iter     Pivots    Primal Obj      Dual Obj        Time
+       0          0     infinity      0.0000000e+00      2s
+       1        946   1.0000000e+08   3.1906510e+02      2s
+       2       1423   1.0000000e+08   6.3001259e+02      2s
+       3       2244   1.0000000e+08   9.2287628e+02      2s
+       4       2873   8.9975010e+07   2.4611795e+03      2s
+       5       3677   5.5676411e+07   2.1876661e+03      2s
+       6       4879   5.3009481e+07   2.8114510e+03      2s
+       7       5484   5.2248686e+07   3.2276644e+03      2s
+       8       6629   3.8784664e+07   3.4920486e+03      2s
+       9       7709   3.3910308e+07   3.7764227e+03      2s
+      10       9013   3.1476635e+07   4.3010285e+03      2s
+      11      10784   2.7098734e+07   4.5528933e+03      2s
+      12      11985   2.3931117e+07   4.6999428e+03      2s
+      13      13425   1.9770107e+07   4.4576275e+03      2s
+      14      15076   1.7396157e+07   4.5132550e+03      2s
+      15      16874   1.6020752e+07   4.5489467e+03      3s
+      16      19196   1.4894409e+07   4.5871537e+03      3s
+      17      21070   1.4080137e+07   4.7869085e+03      3s
+      18      23032   9.6148610e+06   4.9064236e+03      3s
+      19      25339   5.9304362e+06   5.0540487e+03      3s
+      20      26776   3.8441107e+06   4.7402624e+03      3s
+      21      29046   2.9639788e+06   4.8057343e+03      3s
+      22      31241   2.5239328e+06   4.9606005e+03      4s
+      23      33374   1.8063768e+06   5.0971274e+03      4s
+      24      36982   1.3626534e+06   5.1687881e+03      4s
+      25      38752   6.7873603e+05   5.2174972e+03      4s
+      26      40257   3.2947615e+04  -2.0462661e+04      5s
+      27      41873   3.1526669e+04  -1.9416145e+04      5s
+      28      43130   3.0192469e+04  -1.8284699e+04      5s
+      29      44361   2.6618746e+04  -1.4553124e+04      5s
+      30      45720   2.5289874e+04  -1.1162526e+04      5s
+      31      46856   2.3878943e+04  -9.6995858e+03      5s
+      32      48073   2.2599931e+04  -3.8124507e+03      5s
+      33      49487   2.1232475e+04   6.9689695e+03      6s
+      34      51139   2.0620497e+04   1.7427958e+04      6s
+      35      52389   2.0532822e+04   2.0483771e+04      6s
+
+Sifting complete
+
+
+Root simplex log...
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   52924    2.2303150e+04   0.000000e+00   0.000000e+00      6s
+
+Root relaxation: objective 2.230315e+04, 52924 iterations, 4.47 seconds (5.69 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 22303.1500    0   99          - 22303.1500      -     -    6s
+     0     0 22305.0000    0  109          - 22305.0000      -     -    6s
+     0     0 22309.3000    0  100          - 22309.3000      -     -    6s
+     0     0 22313.9194    0  110          - 22313.9194      -     -    7s
+     0     0 22319.1379    0  117          - 22319.1379      -     -    7s
+     0     0 22325.8915    0  118          - 22325.8915      -     -    7s
+H    0     0                    23946.000000 22325.8915  6.77%     -    7s
+H    0     0                    22583.000000 22325.8915  1.14%     -   10s
+H    0     0                    22571.000000 22325.8915  1.09%     -   10s
+     0     0 22360.1984    0  119 22571.0000 22360.1984  0.93%     -   11s
+H    0     0                    22527.000000 22360.1984  0.74%     -   13s
+*    0     0               0    22386.000000 22386.0000  0.00%     -   13s
+
+Explored 1 nodes (60977 simplex iterations) in 13.21 seconds (13.65 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 5: 22386 22527 22571 ... 23946
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.238600000000e+04, best bound 2.238600000000e+04, gap 0.0000%
+
+User-callback calls 3514, time in user-callback 0.02 sec
+
+
+New best integer solution: 22386.0
+Amount columns in solution: 13
+Amount columns in batch pool: 13
+Total time passed for best solution: 28.33272099494934
+
+Gurobi 10.0.1 (mac64[x86]) logging started Sa  5 Aug 18:18:28 2023
+
+Set parameter LogFile to value "Output/IPB_inst_100_50_1_RMP_RUNTIME_300_NCOLOUMNS_200_GAP_THRESHOLD_0.2_STARTSOLUTION_4_2023-08-05_18-17-53.txt"
+
+Gurobi 10.0.1 (mac64[x86]) logging started Sa  5 Aug 18:18:28 2023
+
+Set parameter LogFile to value "Output/IPB_inst_100_50_1_RMP_RUNTIME_300_NCOLOUMNS_200_GAP_THRESHOLD_0.2_STARTSOLUTION_4_2023-08-05_18-17-53.txt"
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 13 columns and 126 nonzeros
+Model fingerprint: 0xef6a5789
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [3e+02, 3e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 201 rows and 13 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 32, time in user-callback 0.00 sec
+
+IPB Iteration: 1
+
+CG Iteration 1
+Obj Relaxed: 22386.0
+Columns added to RMP: 200 in 2.3405818939208984
+
+e(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 213 columns and 3324 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [3e+02, 4e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.3870920e+06   6.354000e+03   0.000000e+00      0s
+      11    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 11 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 30, time in user-callback 0.00 sec
+
+CG Iteration 2
+Obj Relaxed: 22386.0
+Columns added to RMP: 200 in 2.3716928958892822
+
+e(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 413 columns and 6045 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [3e+02, 6e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -2.4684650e+06   1.648500e+04   0.000000e+00      0s
+      26    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 26 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 46, time in user-callback 0.00 sec
+
+CG Iteration 3
+Obj Relaxed: 22386.0
+Columns added to RMP: 200 in 2.404968023300171
+
+re(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 613 columns and 8144 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [3e+02, 6e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.9380415e+06   3.241700e+04   0.000000e+00      0s
+      52    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 52 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 72, time in user-callback 0.00 sec
+
+CG Iteration 4
+Obj Relaxed: 22385.999999999993
+Columns added to RMP: 200 in 2.5131001472473145
+
+38NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 813 columns and 10385 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [3e+02, 6e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -2.2801365e+06   1.479775e+04   0.000000e+00      0s
+     231    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 231 iterations and 0.01 seconds (0.01 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 251, time in user-callback 0.00 sec
+
+CG Iteration 5
+Obj Relaxed: 22386.0
+Columns added to RMP: 200 in 2.367511034011841
+
+re(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 1013 columns and 12508 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [3e+02, 6e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.4215304e+06   3.813293e+04   0.000000e+00      0s
+     170    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 170 iterations and 0.01 seconds (0.01 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 190, time in user-callback 0.00 sec
+
+CG Iteration 6
+Obj Relaxed: 22386.0
+Columns added to RMP: 200 in 2.306299924850464
+
+re(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 1213 columns and 14707 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [3e+02, 6e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.0601688e+06   3.454054e+05   0.000000e+00      0s
+     165    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 165 iterations and 0.02 seconds (0.01 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 185, time in user-callback 0.00 sec
+
+CG Iteration 7
+Obj Relaxed: 22385.99999999999
+Columns added to RMP: 200 in 2.332458019256592
+
+1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 1413 columns and 17199 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [3e+02, 7e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -4.2899935e+05   1.182185e+04   0.000000e+00      0s
+     474    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 474 iterations and 0.05 seconds (0.05 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 494, time in user-callback 0.00 sec
+
+CG Iteration 8
+Obj Relaxed: 22385.99999999997
+Columns added to RMP: 200 in 2.3847432136535645
+
+038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 1613 columns and 19191 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 7e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -3.1447902e+05   2.679093e+04   0.000000e+00      0s
+     623    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 623 iterations and 0.10 seconds (0.08 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 643, time in user-callback 0.00 sec
+
+CG Iteration 9
+Obj Relaxed: 22385.999999999985
+Columns added to RMP: 200 in 2.298137903213501
+
+038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 1813 columns and 21639 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -5.0679257e+05   3.857401e+04   0.000000e+00      0s
+     246    2.2386000e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 246 iterations and 0.03 seconds (0.03 work units)
+Optimal objective  2.238600000e+04
+
+User-callback calls 266, time in user-callback 0.00 sec
+
+CG Iteration 10
+Obj Relaxed: 22120.77928389058
+Columns added to RMP: 200 in 2.3430280685424805
+
+38NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 2013 columns and 24152 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -3.0731907e+05   1.189561e+04   0.000000e+00      0s
+    1232    2.2120779e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 1232 iterations and 0.17 seconds (0.17 work units)
+Optimal objective  2.212077928e+04
+
+User-callback calls 1252, time in user-callback 0.00 sec
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 2013 columns and 24152 nonzeros
+Model fingerprint: 0x0f269e0e
+Variable types: 0 continuous, 2013 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Found heuristic solution: objective 22386.000000
+Presolve removed 201 rows and 2013 columns
+Presolve time: 0.08s
+Presolve: All rows and columns removed
+
+Explored 0 nodes (0 simplex iterations) in 0.09 seconds (0.08 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 1: 22386 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.238600000000e+04, best bound 2.238600000000e+04, gap 0.0000%
+
+User-callback calls 393, time in user-callback 0.00 sec
+
+
+New integer solution found: 22386.0 
+Time for iteration 1: 39.78006911277771 seconds
+Total time passed: 52.100120067596436 seconds
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 2013 columns and 24152 nonzeros
+Model fingerprint: 0x231c59cf
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 8 rows and 143 columns
+Presolve time: 0.01s
+Presolved: 193 rows, 1870 columns, 22526 nonzeros
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    3.6410000e+03   7.800000e+01   0.000000e+00      0s
+    1269    2.2120779e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 1269 iterations and 0.13 seconds (0.15 work units)
+Optimal objective  2.212077928e+04
+
+User-callback calls 1723, time in user-callback 0.00 sec
+
+IPB Iteration: 2
+
+CG Iteration 1
+Obj Relaxed: 21995.77109691266
+Columns added to RMP: 200 in 2.425539970397949
+
+1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 2213 columns and 26081 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -2.9425064e+06   8.106414e+04   0.000000e+00      0s
+     452    2.1995771e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 452 iterations and 0.06 seconds (0.07 work units)
+Optimal objective  2.199577110e+04
+
+User-callback calls 2196, time in user-callback 0.00 sec
+
+CG Iteration 2
+Obj Relaxed: 21546.869240783675
+Columns added to RMP: 200 in 2.2821547985076904
+
+38NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 2413 columns and 28833 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -6.8324390e+05   7.035822e+04   0.000000e+00      0s
+     664    2.1546869e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 664 iterations and 0.08 seconds (0.10 work units)
+Optimal objective  2.154686924e+04
+
+User-callback calls 2881, time in user-callback 0.00 sec
+
+CG Iteration 3
+Obj Relaxed: 21049.56005854425
+Columns added to RMP: 200 in 2.381618022918701
+
+1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 2613 columns and 31042 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -1.5875353e+05   4.318782e+04   0.000000e+00      0s
+     696    2.1049560e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 696 iterations and 0.09 seconds (0.12 work units)
+Optimal objective  2.104956006e+04
+
+User-callback calls 3598, time in user-callback 0.00 sec
+
+CG Iteration 4
+Obj Relaxed: 20776.64237095135
+Columns added to RMP: 200 in 2.2730090618133545
+
+038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 2813 columns and 34137 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -7.8435953e+04   1.436610e+04   0.000000e+00      0s
+     667    2.0776642e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 667 iterations and 0.10 seconds (0.12 work units)
+Optimal objective  2.077664237e+04
+
+User-callback calls 4286, time in user-callback 0.00 sec
+
+CG Iteration 5
+Obj Relaxed: 20577.75396287992
+Columns added to RMP: 200 in 2.3224689960479736
+
+038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 3013 columns and 37173 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -2.9429748e+04   4.737115e+03   0.000000e+00      0s
+     678    2.0577754e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 678 iterations and 0.10 seconds (0.13 work units)
+Optimal objective  2.057775396e+04
+
+User-callback calls 4985, time in user-callback 0.00 sec
+
+CG Iteration 6
+Obj Relaxed: 20425.413879712356
+Columns added to RMP: 200 in 2.3478610515594482
+
+38NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 3213 columns and 39237 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0   -8.0325849e+03   7.843531e+03   0.000000e+00      0s
+     574    2.0425414e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 574 iterations and 0.09 seconds (0.11 work units)
+Optimal objective  2.042541388e+04
+
+User-callback calls 5580, time in user-callback 0.00 sec
+
+CG Iteration 7
+Obj Relaxed: 20355.37161265447
+Columns added to RMP: 200 in 2.3498079776763916
+
+038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 3413 columns and 42109 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    7.6419435e+02   5.629905e+03   0.000000e+00      0s
+     544    2.0355372e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 544 iterations and 0.09 seconds (0.11 work units)
+Optimal objective  2.035537161e+04
+
+User-callback calls 6145, time in user-callback 0.00 sec
+
+CG Iteration 8
+Obj Relaxed: 20280.23156618221
+Columns added to RMP: 200 in 2.3837549686431885
+
+038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 3613 columns and 44768 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    8.7858456e+03   2.375040e+03   0.000000e+00      0s
+     632    2.0280232e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 632 iterations and 0.10 seconds (0.13 work units)
+Optimal objective  2.028023157e+04
+
+User-callback calls 6798, time in user-callback 0.00 sec
+
+CG Iteration 9
+Obj Relaxed: 20254.734300052856
+Columns added to RMP: 200 in 2.313823938369751
+
+038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 3813 columns and 47144 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+02, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    1.1466730e+04   9.720009e+04   0.000000e+00      0s
+     609    2.0254734e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 609 iterations and 0.10 seconds (0.13 work units)
+Optimal objective  2.025473430e+04
+
+User-callback calls 7428, time in user-callback 0.01 sec
+
+CG Iteration 10
+Obj Relaxed: 20237.14100969864
+Columns added to RMP: 200 in 2.52394700050354
+
+1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4013 columns and 49694 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    1.5424059e+04   7.580567e+03   0.000000e+00      0s
+     525    2.0237141e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 525 iterations and 0.09 seconds (0.12 work units)
+Optimal objective  2.023714101e+04
+
+User-callback calls 7974, time in user-callback 0.01 sec
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4013 columns and 49694 nonzeros
+Model fingerprint: 0xa9d2377d
+Variable types: 0 continuous, 4013 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+MIP start from previous solve produced solution with objective 22386 (0.01s)
+Loaded MIP start from previous solve with objective 22386
+
+Presolve removed 2 rows and 1322 columns
+Presolve time: 0.47s
+Presolved: 199 rows, 2691 columns, 30075 nonzeros
+Variable types: 0 continuous, 2691 integer (2691 binary)
+
+Root relaxation: objective 2.038212e+04, 1939 iterations, 0.32 seconds (0.27 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 20382.1163    0  148 22386.0000 20382.1163  8.95%     -    0s
+     0     0 20419.8002    0  158 22386.0000 20419.8002  8.78%     -    0s
+     0     0 20451.3454    0  165 22386.0000 20451.3454  8.64%     -    0s
+
+Explored 1 nodes (2610 simplex iterations) in 1.24 seconds (1.09 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 22386 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.238600000000e+04, best bound 2.238600000000e+04, gap 0.0000%
+
+User-callback calls 529, time in user-callback 0.00 sec
+
+
+New integer solution found: 22386.0 
+Time for iteration 1: 64.77996516227722 seconds
+Total time passed: 77.09999299049377 seconds
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4013 columns and 49694 nonzeros
+Model fingerprint: 0x90b8b5ed
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 0 columns
+Presolve time: 0.02s
+Presolved: 199 rows, 4013 columns, 49330 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ AA' NZ     : 1.016e+04
+ Factor NZ  : 1.563e+04 (roughly 2 MB of memory)
+ Factor Ops : 1.495e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.52878296e+06  0.00000000e+00  1.23e+02 0.00e+00  2.45e-01     0s
+   1   1.13024453e+05 -8.75322260e+03  7.39e+00 2.66e-15  1.79e-02     0s
+   2   2.74431872e+04  4.65382153e+03  4.51e-01 1.78e-15  2.80e-03     0s
+   3   2.16094309e+04  1.73445914e+04  4.05e-14 3.55e-15  5.19e-04     0s
+   4   2.10909832e+04  1.94853851e+04  9.78e-14 4.44e-15  1.95e-04     0s
+   5   2.07609098e+04  1.99594606e+04  5.57e-14 1.78e-15  9.75e-05     0s
+   6   2.06988787e+04  2.00293307e+04  4.95e-14 1.78e-15  8.15e-05     0s
+   7   2.04975615e+04  2.01675706e+04  4.44e-14 2.66e-15  4.02e-05     0s
+   8   2.03491322e+04  2.02003982e+04  1.20e-13 3.11e-15  1.81e-05     0s
+   9   2.03069924e+04  2.02139875e+04  8.32e-14 2.22e-15  1.13e-05     0s
+  10   2.02659353e+04  2.02310423e+04  1.57e-13 3.55e-15  4.25e-06     0s
+  11   2.02549809e+04  2.02342281e+04  1.46e-13 2.66e-15  2.53e-06     0s
+  12   2.02405073e+04  2.02357653e+04  8.11e-13 3.55e-15  5.77e-07     0s
+  13   2.02375963e+04  2.02368192e+04  1.17e-12 4.44e-15  9.46e-08     0s
+  14   2.02372310e+04  2.02370141e+04  5.53e-13 1.78e-15  2.64e-08     0s
+  15   2.02371690e+04  2.02371174e+04  3.67e-12 3.55e-15  6.28e-09     0s
+  16   2.02371463e+04  2.02371386e+04  6.33e-12 2.66e-15  9.39e-10     0s
+  17   2.02371411e+04  2.02371409e+04  9.89e-12 3.55e-15  2.51e-11     0s
+
+Barrier solved model in 17 iterations and 0.08 seconds (0.05 work units)
+Optimal objective 2.02371411e+04
+
+Crossover log...
+
+      44 DPushes remaining with DInf 0.0000000e+00                 0s
+       0 DPushes remaining with DInf 0.0000000e+00                 0s
+
+      40 PPushes remaining with PInf 1.6004889e-06                 0s
+       0 PPushes remaining with PInf 0.0000000e+00                 0s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 9.7798755e-05      0s
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+      87    2.0237141e+04   0.000000e+00   9.779875e-05      0s
+
+Solved with barrier
+      88    2.0237141e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 88 iterations and 0.09 seconds (0.06 work units)
+Optimal objective  2.023714101e+04
+
+User-callback calls 753, time in user-callback 0.00 sec
+
+IPB Iteration: 3
+
+CG Iteration 1
+Obj Relaxed: 20229.741127490754
+Columns added to RMP: 181 in 2.063256025314331
+
+038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4194 columns and 51959 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    1.9269191e+04   1.630374e+04   0.000000e+00      0s
+     404    2.0229741e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 404 iterations and 0.07 seconds (0.09 work units)
+Optimal objective  2.022974113e+04
+
+User-callback calls 1178, time in user-callback 0.00 sec
+
+CG Iteration 2
+Obj Relaxed: 20229.548214601513
+Columns added to RMP: 62 in 1.9765119552612305
+
+038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4256 columns and 52680 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    2.0124028e+04   1.143234e+03   0.000000e+00      0s
+     170    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 170 iterations and 0.03 seconds (0.04 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 1369, time in user-callback 0.00 sec
+
+CG Iteration 3
+Obj Relaxed: 20229.548214601502
+Columns added to RMP: 9 in 2.0202009677886963
+
+1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4265 columns and 52781 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    2.0228813e+04   4.876608e+01   0.000000e+00      0s
+      26    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 26 iterations and 0.01 seconds (0.01 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 1416, time in user-callback 0.00 sec
+
+CG Iteration 4
+Obj Relaxed: 20229.548214601502
+Columns added to RMP: 4 in 2.021169900894165
+
+-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4269 columns and 52826 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 1435, time in user-callback 0.00 sec
+
+CG Iteration 5
+Obj Relaxed: 20229.548214601502
+Columns added to RMP: 0 in 1.9629950523376465
+
+1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4269 columns and 52826 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+Solved in 0 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 1451, time in user-callback 0.00 sec
+No columns with negative reduced cost found
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4269 columns and 52826 nonzeros
+Model fingerprint: 0x66d2124c
+Variable types: 0 continuous, 4269 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+MIP start from previous solve produced solution with objective 22386 (0.01s)
+Loaded MIP start from previous solve with objective 22386
+
+Presolve removed 0 rows and 979 columns
+Presolve time: 0.51s
+Presolved: 201 rows, 3290 columns, 37919 nonzeros
+Variable types: 0 continuous, 3290 integer (3290 binary)
+
+Root relaxation: objective 2.030911e+04, 2277 iterations, 0.29 seconds (0.36 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 20309.1078    0  155 22386.0000 20309.1078  9.28%     -    0s
+     0     0 20335.8557    0  145 22386.0000 20335.8557  9.16%     -    0s
+     0     0 20366.7986    0  155 22386.0000 20366.7986  9.02%     -    1s
+
+Explored 1 nodes (3466 simplex iterations) in 1.49 seconds (1.37 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 22386 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.238600000000e+04, best bound 2.238600000000e+04, gap 0.0000%
+
+User-callback calls 524, time in user-callback 0.00 sec
+
+
+New integer solution found: 22386.0 
+Time for iteration 1: 76.45423316955566 seconds
+Total time passed: 88.77429509162903 seconds
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4269 columns and 52826 nonzeros
+Model fingerprint: 0x1903024b
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 0 columns
+Presolve time: 0.03s
+Presolved: 199 rows, 4269 columns, 52548 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ AA' NZ     : 1.028e+04
+ Factor NZ  : 1.573e+04 (roughly 2 MB of memory)
+ Factor Ops : 1.517e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.57134791e+06  0.00000000e+00  1.23e+02 0.00e+00  2.37e-01     0s
+   1   1.23551280e+05 -8.97972597e+03  8.06e+00 2.66e-15  1.84e-02     0s
+   2   2.82516158e+04  4.21635690e+03  5.10e-01 2.22e-15  2.78e-03     0s
+   3   2.15566759e+04  1.74404384e+04  1.35e-13 5.33e-15  4.71e-04     0s
+   4   2.10824559e+04  1.94433768e+04  1.53e-13 7.11e-15  1.87e-04     0s
+   5   2.07835295e+04  1.98990212e+04  3.12e-13 4.44e-15  1.01e-04     0s
+   6   2.05534394e+04  2.01074460e+04  1.45e-13 4.44e-15  5.10e-05     0s
+   7   2.04752667e+04  2.01457558e+04  2.92e-13 4.44e-15  3.77e-05     0s
+   8   2.03652707e+04  2.02001953e+04  2.11e-13 7.11e-15  1.89e-05     0s
+   9   2.02897257e+04  2.02182362e+04  6.74e-14 6.22e-15  8.18e-06     0s
+  10   2.02462373e+04  2.02242602e+04  2.40e-13 3.55e-15  2.51e-06     0s
+  11   2.02356194e+04  2.02279401e+04  3.72e-13 5.33e-15  8.78e-07     0s
+  12   2.02327708e+04  2.02291900e+04  5.11e-13 7.11e-15  4.10e-07     0s
+  13   2.02310459e+04  2.02294182e+04  1.56e-12 6.22e-15  1.86e-07     0s
+  14   2.02299181e+04  2.02295032e+04  2.36e-12 7.11e-15  4.75e-08     0s
+  15   2.02296443e+04  2.02295416e+04  6.47e-12 2.66e-15  1.17e-08     0s
+  16   2.02295510e+04  2.02295481e+04  9.02e-12 6.66e-15  3.40e-10     0s
+  17   2.02295484e+04  2.02295482e+04  1.63e-11 6.66e-15  1.99e-11     0s
+
+Barrier solved model in 17 iterations and 0.11 seconds (0.05 work units)
+Optimal objective 2.02295484e+04
+
+Crossover log...
+
+      54 DPushes remaining with DInf 0.0000000e+00                 0s
+       0 DPushes remaining with DInf 0.0000000e+00                 0s
+
+      62 PPushes remaining with PInf 0.0000000e+00                 0s
+       0 PPushes remaining with PInf 0.0000000e+00                 0s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.3781337e-13      0s
+
+
+Solved with barrier
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+     119    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 119 iterations and 0.12 seconds (0.06 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 793, time in user-callback 0.00 sec
+
+IPB Iteration: 4
+
+CG Iteration 1
+Obj Relaxed: 20229.54821460151
+Columns added to RMP: 14 in 2.067936897277832
+
+-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4283 columns and 53013 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    2.0186354e+04   1.053337e+03   0.000000e+00      0s
+      71    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 71 iterations and 0.02 seconds (0.02 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 885, time in user-callback 0.00 sec
+
+CG Iteration 2
+Obj Relaxed: 20229.54821460151
+Columns added to RMP: 0 in 2.009873867034912
+
+5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4283 columns and 53013 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+Solved in 0 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 901, time in user-callback 0.00 sec
+No columns with negative reduced cost found
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4283 columns and 53013 nonzeros
+Model fingerprint: 0x9de74f15
+Variable types: 0 continuous, 4283 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+MIP start from previous solve produced solution with objective 22386 (0.01s)
+Loaded MIP start from previous solve with objective 22386
+
+Presolve removed 0 rows and 952 columns
+Presolve time: 0.44s
+Presolved: 201 rows, 3331 columns, 38537 nonzeros
+Variable types: 0 continuous, 3331 integer (3331 binary)
+
+Root relaxation: objective 2.030911e+04, 2341 iterations, 0.29 seconds (0.38 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 20309.1078    0  155 22386.0000 20309.1078  9.28%     -    0s
+     0     0 20335.4639    0  140 22386.0000 20335.4639  9.16%     -    0s
+     0     0 20339.0566    0  148 22386.0000 20339.0566  9.14%     -    0s
+
+Explored 1 nodes (2951 simplex iterations) in 1.35 seconds (1.29 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 22386 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.238600000000e+04, best bound 2.238600000000e+04, gap 0.0000%
+
+User-callback calls 528, time in user-callback 0.00 sec
+
+
+New integer solution found: 22386.0 
+Time for iteration 1: 82.04328799247742 seconds
+Total time passed: 94.36333107948303 seconds
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4283 columns and 53013 nonzeros
+Model fingerprint: 0x7603009e
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 0 columns
+Presolve time: 0.03s
+Presolved: 199 rows, 4283 columns, 52766 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ AA' NZ     : 1.028e+04
+ Factor NZ  : 1.633e+04 (roughly 2 MB of memory)
+ Factor Ops : 1.660e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.57698352e+06  0.00000000e+00  1.23e+02 0.00e+00  2.37e-01     0s
+   1   1.23295324e+05 -8.98961080e+03  8.02e+00 1.78e-15  1.83e-02     0s
+   2   2.84064449e+04  4.20471730e+03  5.21e-01 2.66e-15  2.79e-03     0s
+   3   2.15591985e+04  1.73882016e+04  5.69e-14 3.55e-15  4.76e-04     0s
+   4   2.10929320e+04  1.94445097e+04  1.33e-13 3.55e-15  1.88e-04     0s
+   5   2.07968501e+04  1.98960135e+04  8.22e-14 2.66e-15  1.03e-04     0s
+   6   2.05783033e+04  2.01050072e+04  4.46e-14 5.33e-15  5.40e-05     0s
+   7   2.04853374e+04  2.01459776e+04  4.11e-14 2.66e-15  3.87e-05     0s
+   8   2.03527276e+04  2.02047103e+04  6.13e-14 5.33e-15  1.69e-05     0s
+   9   2.02840402e+04  2.02203295e+04  4.50e-14 3.55e-15  7.26e-06     0s
+  10   2.02561573e+04  2.02252083e+04  1.79e-13 7.11e-15  3.53e-06     0s
+  11   2.02438777e+04  2.02273457e+04  1.02e-13 5.33e-15  1.88e-06     0s
+  12   2.02352052e+04  2.02285446e+04  4.86e-13 5.33e-15  7.59e-07     0s
+  13   2.02310426e+04  2.02293610e+04  5.45e-13 3.55e-15  1.92e-07     0s
+  14   2.02299425e+04  2.02294595e+04  1.08e-12 2.22e-15  5.51e-08     0s
+  15   2.02296559e+04  2.02295328e+04  1.48e-12 3.55e-15  1.40e-08     0s
+  16   2.02295498e+04  2.02295474e+04  8.46e-12 4.44e-15  2.71e-10     0s
+  17   2.02295483e+04  2.02295482e+04  2.02e-12 7.11e-15  1.31e-11     0s
+
+Barrier solved model in 17 iterations and 0.09 seconds (0.05 work units)
+Optimal objective 2.02295483e+04
+
+Crossover log...
+
+      53 DPushes remaining with DInf 0.0000000e+00                 0s
+       0 DPushes remaining with DInf 0.0000000e+00                 0s
+
+      63 PPushes remaining with PInf 0.0000000e+00                 0s
+       0 PPushes remaining with PInf 0.0000000e+00                 0s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.3090917e-13      0s
+
+
+Solved with barrier
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+     119    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 119 iterations and 0.10 seconds (0.06 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 785, time in user-callback 0.00 sec
+
+IPB Iteration: 5
+
+CG Iteration 1
+Obj Relaxed: 20229.548214601517
+Columns added to RMP: 8 in 2.134291887283325
+
+-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4291 columns and 53114 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    2.0218193e+04   1.207329e+03   0.000000e+00      0s
+      50    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 50 iterations and 0.01 seconds (0.01 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 856, time in user-callback 0.00 sec
+
+CG Iteration 2
+Obj Relaxed: 20229.548214601517
+Columns added to RMP: 0 in 2.039102077484131
+
+-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4291 columns and 53114 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+Solved in 0 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 872, time in user-callback 0.00 sec
+No columns with negative reduced cost found
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4291 columns and 53114 nonzeros
+Model fingerprint: 0x074d5a6e
+Variable types: 0 continuous, 4291 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+MIP start from previous solve produced solution with objective 22386 (0.01s)
+Loaded MIP start from previous solve with objective 22386
+
+Presolve removed 0 rows and 946 columns
+Presolve time: 0.44s
+Presolved: 201 rows, 3345 columns, 38720 nonzeros
+Variable types: 0 continuous, 3345 integer (3345 binary)
+
+Root relaxation: objective 2.030911e+04, 2300 iterations, 0.30 seconds (0.38 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 20309.1078    0  155 22386.0000 20309.1078  9.28%     -    0s
+     0     0 20335.4173    0  139 22386.0000 20335.4173  9.16%     -    0s
+     0     0 20366.1205    0  156 22386.0000 20366.1205  9.02%     -    1s
+
+Explored 1 nodes (3249 simplex iterations) in 1.37 seconds (1.35 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 22386 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.238600000000e+04, best bound 2.238600000000e+04, gap 0.0000%
+
+User-callback calls 524, time in user-callback 0.00 sec
+
+
+New integer solution found: 22386.0 
+Time for iteration 1: 87.7368381023407 seconds
+Total time passed: 100.05688309669495 seconds
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4291 columns and 53114 nonzeros
+Model fingerprint: 0x6e491692
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 0 columns
+Presolve time: 0.03s
+Presolved: 199 rows, 4291 columns, 52867 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ AA' NZ     : 1.028e+04
+ Factor NZ  : 1.633e+04 (roughly 2 MB of memory)
+ Factor Ops : 1.660e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.57970061e+06  0.00000000e+00  1.23e+02 0.00e+00  2.37e-01     0s
+   1   1.23475490e+05 -8.98909778e+03  8.02e+00 1.78e-15  1.83e-02     0s
+   2   2.81435455e+04  4.21043012e+03  4.99e-01 2.66e-15  2.75e-03     0s
+   3   2.15672731e+04  1.74736917e+04  4.49e-14 7.11e-15  4.66e-04     0s
+   4   2.10889411e+04  1.94069544e+04  2.53e-13 4.44e-15  1.91e-04     0s
+   5   2.07860585e+04  1.98875968e+04  4.31e-13 3.00e-15  1.02e-04     0s
+   6   2.05098540e+04  2.00480859e+04  1.25e-13 4.88e-15  5.25e-05     0s
+   7   2.04387968e+04  2.01487146e+04  7.86e-14 3.55e-15  3.30e-05     0s
+   8   2.03007390e+04  2.01966008e+04  2.24e-13 5.33e-15  1.19e-05     0s
+   9   2.02686641e+04  2.02177012e+04  1.50e-13 2.66e-15  5.80e-06     0s
+  10   2.02489094e+04  2.02241636e+04  2.63e-13 5.33e-15  2.82e-06     0s
+  11   2.02394922e+04  2.02276715e+04  1.08e-13 3.11e-15  1.35e-06     0s
+  12   2.02334344e+04  2.02288498e+04  7.59e-13 4.55e-15  5.22e-07     0s
+  13   2.02307271e+04  2.02293995e+04  2.02e-12 2.22e-15  1.51e-07     0s
+  14   2.02298679e+04  2.02294978e+04  2.74e-12 4.66e-15  4.21e-08     0s
+  15   2.02296339e+04  2.02295382e+04  8.08e-12 5.33e-15  1.09e-08     0s
+  16   2.02295515e+04  2.02295479e+04  1.32e-11 4.00e-15  4.07e-10     0s
+  17   2.02295482e+04  2.02295482e+04  5.20e-11 4.00e-15  6.31e-13     0s
+
+Barrier solved model in 17 iterations and 0.09 seconds (0.06 work units)
+Optimal objective 2.02295482e+04
+
+Crossover log...
+
+      53 DPushes remaining with DInf 0.0000000e+00                 0s
+       0 DPushes remaining with DInf 0.0000000e+00                 0s
+
+      61 PPushes remaining with PInf 0.0000000e+00                 0s
+       0 PPushes remaining with PInf 0.0000000e+00                 0s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.8932078e-13      0s
+
+
+Solved with barrier
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+     117    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 117 iterations and 0.10 seconds (0.06 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 783, time in user-callback 0.00 sec
+
+IPB Iteration: 6
+
+CG Iteration 1
+Obj Relaxed: 20229.548214601506
+Columns added to RMP: 1 in 2.054080009460449
+
+-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4292 columns and 53131 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    2.0227204e+04   5.859849e+01   0.000000e+00      0s
+      24    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 24 iterations and 0.01 seconds (0.01 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 828, time in user-callback 0.00 sec
+
+CG Iteration 2
+Obj Relaxed: 20229.548214601506
+Columns added to RMP: 1 in 2.0598361492156982
+
+1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4293 columns and 53141 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 847, time in user-callback 0.00 sec
+
+CG Iteration 3
+Obj Relaxed: 20229.548214601506
+Columns added to RMP: 0 in 2.036012887954712
+
+-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4293 columns and 53141 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+Solved in 0 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 863, time in user-callback 0.00 sec
+No columns with negative reduced cost found
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4293 columns and 53141 nonzeros
+Model fingerprint: 0xf054812a
+Variable types: 0 continuous, 4293 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+MIP start from previous solve produced solution with objective 22386 (0.01s)
+Loaded MIP start from previous solve with objective 22386
+
+Presolve removed 0 rows and 945 columns
+Presolve time: 0.44s
+Presolved: 201 rows, 3348 columns, 38759 nonzeros
+Variable types: 0 continuous, 3348 integer (3348 binary)
+
+Root relaxation: objective 2.030911e+04, 2229 iterations, 0.27 seconds (0.37 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 20309.1078    0  156 22386.0000 20309.1078  9.28%     -    0s
+     0     0 20335.9352    0  148 22386.0000 20335.9352  9.16%     -    0s
+     0     0 20364.7735    0  153 22386.0000 20364.7735  9.03%     -    1s
+
+Explored 1 nodes (3135 simplex iterations) in 1.46 seconds (1.34 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 22386 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.238600000000e+04, best bound 2.238600000000e+04, gap 0.0000%
+
+User-callback calls 534, time in user-callback 0.00 sec
+
+
+New integer solution found: 22386.0 
+Time for iteration 1: 95.55790400505066 seconds
+Total time passed: 107.87793707847595 seconds
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4293 columns and 53141 nonzeros
+Model fingerprint: 0x314212da
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 2 rows and 0 columns
+Presolve time: 0.03s
+Presolved: 199 rows, 4293 columns, 52894 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ AA' NZ     : 1.028e+04
+ Factor NZ  : 1.633e+04 (roughly 2 MB of memory)
+ Factor Ops : 1.660e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.58104487e+06  0.00000000e+00  1.23e+02 0.00e+00  2.37e-01     0s
+   1   1.23641656e+05 -8.99282494e+03  8.02e+00 2.66e-15  1.83e-02     0s
+   2   2.81356835e+04  4.19955276e+03  4.98e-01 2.66e-15  2.75e-03     0s
+   3   2.15679232e+04  1.74734153e+04  3.31e-14 5.33e-15  4.66e-04     0s
+   4   2.10887236e+04  1.94018425e+04  4.84e-14 3.55e-15  1.92e-04     0s
+   5   2.07874143e+04  1.98861325e+04  2.53e-13 3.55e-15  1.03e-04     0s
+   6   2.05105344e+04  2.00483393e+04  5.56e-14 3.55e-15  5.26e-05     0s
+   7   2.04524174e+04  2.01475201e+04  1.21e-13 5.33e-15  3.47e-05     0s
+   8   2.03076132e+04  2.01941066e+04  1.17e-13 4.44e-15  1.29e-05     0s
+   9   2.02711980e+04  2.02158537e+04  1.99e-13 2.22e-15  6.29e-06     0s
+  10   2.02517119e+04  2.02245668e+04  2.25e-13 3.77e-15  3.09e-06     0s
+  11   2.02377003e+04  2.02277571e+04  3.21e-13 6.22e-15  1.13e-06     0s
+  12   2.02330733e+04  2.02288679e+04  7.42e-13 5.33e-15  4.78e-07     0s
+  13   2.02304705e+04  2.02293689e+04  2.81e-12 4.44e-15  1.25e-07     0s
+  14   2.02298312e+04  2.02294848e+04  2.80e-12 3.55e-15  3.94e-08     0s
+  15   2.02296393e+04  2.02295356e+04  5.79e-12 5.33e-15  1.18e-08     0s
+  16   2.02295540e+04  2.02295476e+04  1.42e-11 3.55e-15  7.28e-10     0s
+  17   2.02295482e+04  2.02295482e+04  1.03e-11 7.99e-15  1.25e-12     0s
+
+Barrier solved model in 17 iterations and 0.08 seconds (0.06 work units)
+Optimal objective 2.02295482e+04
+
+Crossover log...
+
+      53 DPushes remaining with DInf 0.0000000e+00                 0s
+       0 DPushes remaining with DInf 0.0000000e+00                 0s
+
+      61 PPushes remaining with PInf 0.0000000e+00                 0s
+       0 PPushes remaining with PInf 0.0000000e+00                 0s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.6769919e-13      0s
+
+
+Solved with barrier
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+     117    2.0229548e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 117 iterations and 0.10 seconds (0.06 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 787, time in user-callback 0.00 sec
+
+IPB Iteration: 7
+
+CG Iteration 1
+Obj Relaxed: 20229.548214601495
+Columns added to RMP: 0 in 1.9371700286865234
+
+1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 201 rows, 4293 columns and 53141 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 8e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+Solved in 0 iterations and 0.00 seconds (0.00 work units)
+Optimal objective  2.022954821e+04
+
+User-callback calls 803, time in user-callback 0.00 sec
+No columns with negative reduced cost found
+No columns with negative reduced cost found, IPB done
+
+=========================
+
+OUTPUT STATISTICS
+
+Instance: Data/Instances_txt/inst_100_50_1.txt
+TotalTimePassed: 116.37750887870789
+InitCols: 86849 
+BatchPoolColumns: 221775
+-----------
+SetUpTimeFirstRMP: 12.31977915763855
+ColumnsIPBStartSolution: 13
+MaxColumnsInSolution: 13.0
+MinColumnsInSolution: 13.0
+MaxColumnsInModel: 4293.0
+-----------
+IPBIterations: 7
+CGIterations: 33
+NewBestSolution: 0
+EarlyCGBreaks: 5
+-----------
+ColumnsIPBFinalSolution: 0
+BestIntegerSolution: 22386.0
+LB_RMP_CURRENTBEST: 20229.548214601495
+GapLBUB: 0.096330375475677
+-----------
+TotalTimePricing: 69.61738681793213
+AverageTimePricing: 2.1096177823615796
+AverageTimeCG: 2.1733896298841997
+TotalTimeCG: 71.72185778617859
+TotalTimeIntegerSolution: 7.014381647109985
+AverageTimeIntegerSolution: 1.0020545210157121
+-----------
+History LB in CG
+22386.0, 28.341886043548584
+22385.999999999993, 37.97315001487732
+22385.99999999999, 44.980185985565186
+22385.99999999997, 47.365384101867676
+22120.77928389058, 52.00723314285278
+21995.77109691266, 54.666768074035645
+21546.869240783675, 56.94932508468628
+21049.56005854425, 59.331165075302124
+20776.64237095135, 61.60435700416565
+20577.75396287992, 63.92706513404846
+20425.413879712356, 66.2752480506897
+20355.37161265447, 68.62536811828613
+20280.23156618221, 71.00931596755981
+20254.734300052856, 73.32342910766602
+20237.14100969864, 75.84752106666565
+20229.741127490754, 79.2794680595398
+20229.548214601513, 81.25621795654297
+20229.548214601502, 83.2766661643982
+20229.548214601495, 109.93973207473755

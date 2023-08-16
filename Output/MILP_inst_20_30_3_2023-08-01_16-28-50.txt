@@ -1,0 +1,66 @@
+Instance: Data/Instances_txt/inst_20_30_3.txt
+SetUpTime: 0.5137169361114502
+
+Gurobi 10.0.1 (mac64[x86]) logging started Di  1 Aug 16:28:57 2023
+
+Set parameter LogFile to value "Output/MILP_inst_20_30_3_2023-08-01_16-28-50.txt"
+Set parameter TimeLimit to value 2700
+
+Gurobi 10.0.1 (mac64[x86]) logging started Di  1 Aug 16:28:57 2023
+
+Set parameter LogFile to value "Output/MILP_inst_20_30_3_2023-08-01_16-28-50.txt"
+Gurobi Optimizer version 10.0.1 build v10.0.1rc0 (mac64[x86])
+
+CPU model: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 41 rows, 1353 columns and 7130 nonzeros
+Model fingerprint: 0x94b2f2e1
+Variable types: 0 continuous, 1353 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+00, 2e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 0 rows and 173 columns
+Presolve time: 0.05s
+Presolved: 41 rows, 1180 columns, 6069 nonzeros
+Variable types: 0 continuous, 1180 integer (1180 binary)
+Found heuristic solution: objective 3903.0000000
+Found heuristic solution: objective 2682.0000000
+
+Root relaxation: objective 1.968625e+03, 174 iterations, 0.01 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 1968.62500    0   23 2682.00000 1968.62500  26.6%     -    0s
+H    0     0                    2325.0000000 1968.62500  15.3%     -    0s
+H    0     0                    2050.0000000 1968.62500  3.97%     -    0s
+H    0     0                    1981.0000000 1968.62500  0.62%     -    0s
+     0     0 infeasible    0      1981.00000 1981.00000  0.00%     -    0s
+
+Cutting planes:
+  Clique: 2
+  Zero half: 3
+  RLT: 12
+
+Explored 1 nodes (185 simplex iterations) in 0.09 seconds (0.05 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 5: 1981 2050 2325 ... 3903
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 1.981000000000e+03, best bound 1.981000000000e+03, gap 0.0000%
+
+User-callback calls 248, time in user-callback 0.00 sec
+
+=========================
+
+OUTPUT STATISTICS
+Relaxed: false
+Time since start: 0.6390378475189209
+SetUpTime: 0.5137169361114502
+Objective value: 1981.0
+Number of variables: 1353
+Solving time: 0.12361288070678711
